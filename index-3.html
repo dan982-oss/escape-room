@@ -1,0 +1,2468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Spot the Sustainability Issues</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0c1622;
+    --bg-elevated: #121f30;
+    --panel: #142234;
+    --panel-border: #233850;
+    --text: #e8f0f5;
+    --text-muted: #8497ad;
+    --accent: #3fbfa0;
+    --accent-dim: #1f4a3e;
+    --warn: #f2b807;
+    --bad: #f2785c;
+    --bad-dim: #4a2724;
+    --scene-fill: #0f1c2c;
+    --font-display: 'Baloo 2', system-ui, sans-serif;
+    --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+  }
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) { --bg: #0c1622; --bg-elevated: #121f30; }
+  }
+  :root[data-theme="dark"] { --bg: #0c1622; }
+  * { box-sizing: border-box; }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+  html, body { height: 100%; }
+  body {
+    margin: 0; color: var(--text); font-family: var(--font-display);
+    padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px);
+    -webkit-font-smoothing: antialiased;
+    background:
+      radial-gradient(1.5px 1.5px at 10% 15%, rgba(255,255,255,0.5), transparent),
+      radial-gradient(1.5px 1.5px at 80% 8%, rgba(255,255,255,0.4), transparent),
+      radial-gradient(1px 1px at 30% 70%, rgba(255,255,255,0.35), transparent),
+      radial-gradient(1.5px 1.5px at 60% 40%, rgba(255,255,255,0.4), transparent),
+      radial-gradient(1px 1px at 90% 60%, rgba(255,255,255,0.3), transparent),
+      radial-gradient(1.5px 1.5px at 45% 85%, rgba(255,255,255,0.35), transparent),
+      radial-gradient(1200px 700px at 50% -10%, #1c2f52 0%, transparent 60%),
+      var(--bg);
+    background-attachment: fixed;
+  }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 26px 20px 60px; }
+  header.top { display: flex; flex-direction: column; gap: 6px; margin-bottom: 18px; }
+  .eyebrow { font-family: var(--font-mono); font-size: 13px; color: var(--accent); }
+  h1 {
+    font-size: clamp(26px, 4.2vw, 42px); font-weight: 800; margin: 2px 0 8px; line-height: 1.08;
+    background: linear-gradient(180deg, #ffffff 0%, #cfe3ff 100%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    text-shadow: 0 3px 0 rgba(20,40,70,0.5), 0 8px 14px rgba(0,0,0,0.35);
+    letter-spacing: 0.2px;
+  }
+  .sub { color: var(--text-muted); font-size: 14.5px; max-width: 68ch; line-height: 1.55; font-family: system-ui, sans-serif; }
+  .sub b { color: var(--text); font-weight: 700; }
+  .sub .bad-note { color: var(--bad); font-weight: 700; }
+
+  .tabs { display: flex; gap: 10px; margin: 18px 0 14px; flex-wrap: wrap; }
+  .tab {
+    font-family: var(--font-mono); font-size: 14px;
+    background: linear-gradient(180deg, #1d3049, #142234);
+    border: 1px solid var(--panel-border); color: var(--text-muted);
+    padding: 10px 18px; border-radius: 10px; cursor: pointer;
+    box-shadow: 0 4px 0 #0a1420, 0 6px 10px rgba(0,0,0,0.35);
+    transition: border-color .15s, color .15s, transform .08s, box-shadow .08s;
+  }
+  .tab:hover { color: var(--text); border-color: var(--accent); }
+  .tab:active { transform: translateY(3px); box-shadow: 0 1px 0 #0a1420; }
+  .tab.active {
+    color: #06251c; background: linear-gradient(180deg, #5fe0bd, #3fbfa0);
+    border-color: #1c7f69; font-weight: 700;
+    box-shadow: 0 4px 0 #1c7f69, 0 6px 12px rgba(63,191,160,0.3);
+  }
+  .tab .done-badge { margin-left: 6px; font-size: 11px; opacity: 0.9; }
+
+  .status-bar {
+    display: flex; align-items: center; justify-content: space-between; gap: 14px;
+    background: linear-gradient(180deg, #182a41, #101c2c);
+    border: 1px solid var(--panel-border); border-radius: 14px;
+    padding: 12px 16px; margin-bottom: 16px; flex-wrap: wrap;
+    box-shadow: 0 6px 0 rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.06);
+  }
+  .status-group { display: flex; gap: 22px; flex-wrap: wrap; }
+  .status-item { display: flex; flex-direction: column; gap: 2px; }
+  .status-label { font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); }
+  .status-value { font-family: var(--font-mono); font-size: 21px; font-weight: 700; text-shadow: 0 2px 0 rgba(0,0,0,0.3); }
+  .status-value.warn { color: var(--warn); }
+  .status-value.good { color: var(--accent); }
+  .status-value.bad { color: var(--bad); }
+
+  .controls { display: flex; gap: 9px; flex-wrap: wrap; }
+  button.action {
+    font-family: var(--font-display); font-weight: 700; font-size: 14.5px;
+    border: 1px solid var(--panel-border);
+    background: linear-gradient(180deg, #1d3049, #142234); color: var(--text);
+    padding: 10px 16px; border-radius: 10px; cursor: pointer;
+    box-shadow: 0 4px 0 #0a1420, 0 6px 10px rgba(0,0,0,0.3);
+    transition: transform .08s, box-shadow .08s, border-color .15s;
+  }
+  button.action:hover { border-color: var(--accent); }
+  button.action:active { transform: translateY(3px); box-shadow: 0 1px 0 #0a1420; }
+  button.action.primary {
+    background: linear-gradient(180deg, #5fe0bd, #3fbfa0); color: #06251c; border-color: #1c7f69;
+    box-shadow: 0 4px 0 #1c7f69, 0 6px 12px rgba(63,191,160,0.3);
+  }
+  button.action.primary:active { box-shadow: 0 1px 0 #1c7f69; }
+  button.action:disabled { opacity: 0.35; cursor: not-allowed; box-shadow: none; transform: none; }
+
+  .scene-frame {
+    position: relative; background: var(--scene-fill); border: 1px solid var(--panel-border);
+    border-radius: 20px; overflow: hidden; aspect-ratio: 1000 / 560;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.45), inset 0 0 0 1px rgba(255,255,255,0.04);
+  }
+  .scene-frame svg { width: 100%; height: 100%; display: block; }
+  .hotspot { cursor: pointer; pointer-events: bounding-box; }
+  .hotspot rect { fill: transparent; stroke: none; pointer-events: all; }
+  .hotspot.pulse-hint rect {
+    stroke: var(--warn); stroke-width: 4; fill: rgba(242,184,7,0.12); animation: pulse 1s ease-in-out infinite; rx: 10;
+  }
+  @keyframes pulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+  .mark { display: none; pointer-events: none; }
+  .mark.show { display: block; }
+
+  .toast {
+    position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%) translateY(12px);
+    background: var(--bg-elevated); border: 1px solid var(--panel-border); color: var(--text);
+    padding: 10px 16px; border-radius: 10px; font-size: 14px; max-width: 90%; text-align: center;
+    opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; line-height: 1.4;
+    font-family: system-ui, sans-serif;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .toast.good { border-color: var(--accent); }
+  .toast.bad { border-color: var(--bad); }
+
+  .found-list { margin-top: 18px; }
+  .found-list h2 {
+    font-size: 13px; font-family: var(--font-mono); color: var(--text-muted); font-weight: 500; margin: 0 0 10px;
+  }
+  .found-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px; }
+  .found-card {
+    background: var(--panel); border: 1px solid var(--panel-border); border-radius: 10px;
+    padding: 10px 12px; font-size: 13px; line-height: 1.4; opacity: 0.35; filter: grayscale(0.6);
+    transition: opacity .2s, filter .2s; font-family: system-ui, sans-serif;
+  }
+  .found-card.revealed { opacity: 1; filter: none; border-color: var(--accent-dim); }
+  .found-card .fc-title { font-weight: 700; display: flex; align-items: center; gap: 6px; margin-bottom: 3px; font-family: var(--font-display); }
+  .found-card .fc-check { color: var(--accent); font-family: var(--font-mono); }
+  .found-card .fc-desc { color: var(--text-muted); }
+
+  .decoy-grid { margin-top: 22px; display: none; }
+  .decoy-grid.show { display: block; }
+  .decoy-card {
+    background: var(--bad-dim); border: 1px solid #6b352f; border-radius: 10px;
+    padding: 10px 12px; font-size: 13px; line-height: 1.4; opacity: 0.9; font-family: system-ui, sans-serif;
+  }
+  .decoy-card .fc-title { font-weight: 700; display: flex; align-items: center; gap: 6px; margin-bottom: 3px; color: #f3c9c4; font-family: var(--font-display); }
+  .decoy-card .fc-desc { color: #d7a9a3; }
+
+  .finish-panel {
+    margin-top: 18px; background: var(--panel); border: 1px solid var(--accent-dim); border-radius: 14px;
+    padding: 18px 20px; display: none;
+  }
+  .finish-panel.bust { border-color: #6b352f; }
+  .finish-panel.show { display: block; }
+  .finish-panel h2 { margin: 0 0 6px; font-size: 20px; }
+  .finish-panel p { color: var(--text-muted); font-size: 14px; margin: 0 0 4px; font-family: system-ui, sans-serif; }
+
+  footer.note {
+    margin-top: 26px; color: var(--text-muted); font-size: 12.5px; font-family: var(--font-mono);
+    line-height: 1.6; border-top: 1px solid var(--panel-border); padding-top: 14px;
+  }
+
+  .twinkle { animation: twinkle 2.6s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+  @keyframes twinkle { 0%, 100% { opacity: 0.35; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1.15); } }
+  .drift { animation: drift 5s ease-in-out infinite; opacity: 0; transform-box: fill-box; transform-origin: center; }
+  @keyframes drift { 0% { opacity: 0; transform: translateY(8px); } 40% { opacity: 0.8; } 100% { opacity: 0; transform: translateY(-22px); } }
+  .mark.show { transform-box: fill-box; transform-origin: center; animation: pop .45s cubic-bezier(.3,1.6,.5,1) both, bob 2.4s ease-in-out .45s infinite; }
+  @keyframes pop { 0% { transform: scale(0); } 100% { transform: scale(1); } }
+  @keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+  @media (prefers-reduced-motion: reduce) {
+    .twinkle, .drift, .mark.show { animation: none; }
+    .drift { opacity: 0; }
+  }
+
+  #scene-scroll {
+    position: absolute; inset: 0; overflow: auto; display: flex;
+    -webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-x pan-y;
+    scrollbar-width: thin; scrollbar-color: #2c3b52 transparent;
+  }
+  #scene-svg { position: relative; flex: none; margin: auto; width: 100%; aspect-ratio: 1000 / 560; will-change: transform; }
+  .hotspot { -webkit-tap-highlight-color: transparent; }
+  .zoom-ctrl { position: absolute; top: 10px; right: 10px; z-index: 4; display: flex; gap: 6px; }
+  .zoom-ctrl button {
+    width: 38px; height: 38px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.18);
+    background: rgba(12,22,34,0.72); color: #fff; font: 700 20px/1 system-ui, sans-serif; cursor: pointer;
+    backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); box-shadow: 0 3px 8px rgba(0,0,0,0.35);
+  }
+  .zoom-ctrl button:disabled { opacity: 0.35; cursor: default; }
+  .pan-hint {
+    position: absolute; left: 50%; top: 56px; transform: translateX(-50%); z-index: 4; pointer-events: none;
+    background: rgba(12,22,34,0.82); color: #fff; font: 600 13px system-ui, sans-serif; padding: 8px 14px;
+    border-radius: 20px; white-space: nowrap; opacity: 0; transition: opacity .3s;
+  }
+  .pan-hint.show { opacity: 1; }
+  .toast { z-index: 6; }
+  .tab.locked { opacity: 0.55; }
+  .tab.done:not(.active) { border-color: var(--accent-dim); }
+  .tab.done .done-badge { color: var(--accent); }
+  .progress-wrap {
+    background: linear-gradient(180deg, #182a41, #101c2c); border: 1px solid var(--panel-border);
+    border-radius: 14px; padding: 12px 16px 10px; margin-bottom: 14px;
+    box-shadow: 0 6px 0 rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.06);
+  }
+  .progress-head { display: flex; justify-content: space-between; align-items: baseline; font-weight: 700; font-size: 16px; margin-bottom: 8px; }
+  #progress-pct { font-family: var(--font-mono); font-size: 20px; color: var(--accent); }
+  .progress-track {
+    height: 20px; border-radius: 11px; background: #0a1420; border: 1px solid var(--panel-border);
+    overflow: hidden; box-shadow: inset 0 2px 5px rgba(0,0,0,0.45);
+  }
+  .progress-fill {
+    height: 100%; width: 0; border-radius: 11px; background-color: #f2785c;
+    background-image: linear-gradient(180deg, rgba(255,255,255,0.4), rgba(255,255,255,0) 60%);
+    transition: width .6s cubic-bezier(.3,1.3,.5,1), background-color .4s;
+  }
+  .progress-note { margin-top: 7px; font-size: 12.5px; color: var(--text-muted); font-family: var(--font-mono); }
+  .banner {
+    position: absolute; inset: 0; z-index: 5; display: none; align-items: center; justify-content: center;
+    padding: 14px; background: rgba(8,14,30,0.55); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
+  }
+  .banner.show { display: flex; }
+  .banner-card {
+    background: linear-gradient(180deg, #1d3049, #142234); border: 1px solid var(--panel-border);
+    border-radius: 18px; padding: 20px 24px; max-width: 460px; text-align: center;
+    box-shadow: 0 16px 40px rgba(0,0,0,0.5); animation: pop .35s cubic-bezier(.3,1.5,.5,1) both;
+    max-height: 100%; overflow: auto;
+  }
+  .banner-icon { font-size: 38px; line-height: 1; margin-bottom: 6px; }
+  .banner-card h2 { margin: 0 0 6px; font-size: clamp(20px, 3.2vw, 28px); }
+  .banner-card p { color: var(--text-muted); font-size: 14px; line-height: 1.5; margin: 0 0 14px; font-family: system-ui, sans-serif; }
+  .banner-actions { display: flex; gap: 9px; justify-content: center; flex-wrap: wrap; }
+  @media (max-width: 560px) {
+    .banner { position: fixed; z-index: 50; }
+  }
+  .team-value { max-width: 170px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 17px; }
+  .name-row { margin: 0 0 14px; }
+  .name-row input {
+    width: 100%; max-width: 300px; font: 600 16px var(--font-display); color: var(--text); text-align: center;
+    background: #0b1420; border: 2px solid var(--panel-border); border-radius: 10px; padding: 10px 12px; outline: none;
+  }
+  .name-row input:focus { border-color: var(--accent); }
+  .name-row input.invalid { border-color: var(--bad); }
+  .board-wrap {
+    margin-top: 18px; background: linear-gradient(180deg, #182a41, #101c2c); border: 1px solid var(--panel-border);
+    border-radius: 14px; padding: 14px 16px 12px; box-shadow: 0 6px 0 rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.06);
+  }
+  .board-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+  .board-head h2 { margin: 0; font-size: 18px; }
+  .board-head button.action { font-size: 12.5px; padding: 7px 12px; }
+  .board-scroll { overflow: auto; max-height: 440px; }
+  table.board thead th { position: sticky; top: 0; z-index: 1; background: #13233a; }
+  table.board tr.board-gap td { text-align: center; color: var(--text-muted); padding: 2px; font-size: 16px; }
+  .banner.end-screen { position: fixed; z-index: 50; }
+  .banner-card.banner-wide { max-width: 640px; width: 100%; }
+  .end-board { text-align: left; margin: 2px 0 14px; }
+  .end-board-head { font-weight: 700; font-size: 15px; margin-bottom: 6px; }
+  .end-board-scroll { max-height: min(46vh, 380px); overflow: auto; border: 1px solid var(--panel-border); border-radius: 10px; background: #0f1b2b; }
+  .end-board-scroll table.board thead th { background: #0f1b2b; }
+  table.board { width: 100%; border-collapse: collapse; font-family: var(--font-mono); font-size: 13.5px; }
+  table.board th { text-align: left; color: var(--text-muted); font-weight: 500; font-size: 11.5px; padding: 6px 8px; border-bottom: 1px solid var(--panel-border); white-space: nowrap; }
+  table.board td { padding: 8px; border-bottom: 1px solid rgba(35,56,80,0.6); white-space: nowrap; }
+  table.board td.board-name { font-family: var(--font-display); font-weight: 700; font-size: 14.5px; max-width: 220px; overflow: hidden; text-overflow: ellipsis; }
+  table.board tbody tr:nth-child(1) td:first-child:not(.board-empty) { color: #ffd84a; font-weight: 700; }
+  table.board tr.board-me td { background: rgba(63,191,160,0.14); }
+  table.board td.board-empty { color: var(--text-muted); font-family: system-ui, sans-serif; text-align: center; padding: 14px; white-space: normal; }
+  .board-note { margin-top: 8px; font-size: 12px; color: var(--text-muted); font-family: var(--font-mono); }
+  .thermo-device { display: flex; align-items: center; justify-content: center; gap: 14px; margin: 4px 0 12px; }
+  .thermo-screen {
+    font-family: var(--font-mono); font-size: 42px; font-weight: 700; color: #7dffd9; min-width: 160px;
+    background: linear-gradient(180deg, #1a2433, #0b1018); border: 2px solid #2c3b52; border-radius: 14px;
+    padding: 10px 20px; text-shadow: 0 0 14px rgba(125,255,217,0.55); box-shadow: inset 0 3px 8px rgba(0,0,0,0.5);
+  }
+  .thermo-buttons { display: flex; flex-direction: column; gap: 9px; }
+  .thermo-btn {
+    width: 52px; height: 42px; font-size: 18px; border-radius: 10px; cursor: pointer; color: var(--text);
+    border: 1px solid var(--panel-border); background: linear-gradient(180deg, #2a4060, #1a2b42);
+    box-shadow: 0 4px 0 #0a1420; transition: transform .08s, box-shadow .08s;
+  }
+  .thermo-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 #0a1420; }
+  .thermo-btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none; box-shadow: none; }
+  .thermo-dots { display: flex; gap: 9px; justify-content: center; margin-bottom: 14px; }
+  .thermo-dots span { width: 11px; height: 11px; border-radius: 50%; background: #2c3b52; border: 1px solid #3d5373; }
+  .thermo-dots span.on { background: var(--accent); border-color: var(--accent); }
+  @media (prefers-reduced-motion: reduce) {
+    .banner-card { animation: none; }
+    .progress-fill { transition: none; }
+  }
+
+  @media (max-width: 560px) {
+    .status-bar { flex-direction: column; align-items: stretch; }
+    .status-group { justify-content: space-between; }
+    .controls { justify-content: stretch; }
+    button.action { flex: 1; }
+  }
+  /* ---------- phones ---------- */
+  @media (max-width: 640px) {
+    .wrap { padding: 12px 12px 40px; }
+    header.top { margin-bottom: 6px; gap: 2px; }
+    .eyebrow { font-size: 11px; }
+    h1 { font-size: 24px; margin: 0 0 2px; }
+    .sub { display: none; }
+    .tabs { flex-wrap: nowrap; overflow-x: auto; gap: 6px; margin: 8px 0 10px; padding-bottom: 6px; scrollbar-width: none; }
+    .tabs::-webkit-scrollbar { display: none; }
+    .tab { flex: none; white-space: nowrap; font-size: 12.5px; padding: 8px 11px; }
+    .status-bar { flex-direction: column; align-items: stretch; padding: 9px 10px; gap: 8px; margin-bottom: 10px; }
+    .status-group { display: grid; grid-template-columns: 1.4fr 1fr 0.8fr 1fr; gap: 2px 8px; }
+    .status-item { flex-direction: column; justify-content: flex-start; }
+    .status-label { font-size: 10px; }
+    .status-value { font-size: 16px; }
+    .team-value { max-width: 100%; font-size: 14px; }
+    .controls { gap: 6px; }
+    .controls button.action { flex: 1; font-size: 13px; padding: 8px 6px; }
+    .progress-wrap { padding: 8px 12px; margin-bottom: 10px; }
+    .progress-head { font-size: 13.5px; margin-bottom: 6px; }
+    #progress-pct { font-size: 16px; }
+    .progress-track { height: 12px; }
+    .progress-note { display: none; }
+    .scene-frame { aspect-ratio: auto; height: min(62vh, 560px); border-radius: 14px; }
+    .toast { font-size: 13px; bottom: 10px; }
+    .found-grid { grid-template-columns: 1fr; }
+    table.board { font-size: 12.5px; }
+  }
+  @media (max-height: 500px) and (orientation: landscape) {
+    .scene-frame { aspect-ratio: auto; height: calc(100vh - 24px); }
+    .sub { display: none; }
+  }
+  /* ---------- admin + live board ---------- */
+  .no-reveal #reveal-btn, .no-replay .replay-btn { display: none !important; }
+  .live-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: #ff5a5a; margin-right: 8px; vertical-align: 2px; box-shadow: 0 0 0 0 rgba(255,90,90,.6); animation: livepulse 1.6s infinite; }
+  @keyframes livepulse { 0% { box-shadow: 0 0 0 0 rgba(255,90,90,.6); } 70% { box-shadow: 0 0 0 8px rgba(255,90,90,0); } 100% { box-shadow: 0 0 0 0 rgba(255,90,90,0); } }
+  .live-count { font-family: var(--font-mono); font-size: 12.5px; color: var(--text-muted); }
+  .live-scroll { max-height: 320px; }
+  .live-bar { position: relative; width: 96px; height: 14px; border-radius: 7px; background: #0a1420; border: 1px solid var(--panel-border); overflow: hidden; }
+  .live-bar span { position: absolute; inset: 0 auto 0 0; background: linear-gradient(90deg, #f2b807, #3fbfa0); }
+  .live-bar em { position: relative; display: block; text-align: center; font: 700 9.5px/14px var(--font-mono); color: #fff; font-style: normal; text-shadow: 0 1px 2px #000; }
+  .live-status { font-size: 12px; font-weight: 700; padding: 3px 8px; border-radius: 10px; }
+  .live-status.playing { background: rgba(63,191,160,.18); color: #7dffd9; }
+  .live-status.idle { background: rgba(132,151,173,.18); color: var(--text-muted); }
+  .live-status.escaped { background: rgba(255,216,74,.18); color: #ffd84a; }
+  .live-status.timeup { background: rgba(242,120,92,.18); color: #ff9a80; }
+  .admin { position: fixed; inset: 0; z-index: 100; background: rgba(6,10,20,.82); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); display: flex; align-items: flex-start; justify-content: center; overflow: auto; padding: 24px 14px; }
+  .admin[hidden] { display: none; }
+  .admin-card { width: 100%; max-width: 820px; background: linear-gradient(180deg, #1d3049, #142234); border: 1px solid var(--panel-border); border-radius: 18px; padding: 18px 20px; box-shadow: 0 16px 40px rgba(0,0,0,.5); }
+  .admin-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+  .admin-top h2 { margin: 0; font-size: 24px; }
+  .admin-mode { color: var(--text-muted); font: 12.5px var(--font-mono); margin: 4px 0 14px; }
+  .admin-msg { color: var(--text-muted); font: 14px system-ui, sans-serif; margin: 6px 0 0; }
+  #adm-pw-row { display: flex; gap: 8px; }
+  #adm-pw-row input { flex: 1; max-width: none; text-align: left; }
+  .admin-toggles { display: grid; gap: 10px; margin-bottom: 14px; }
+  .switch-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; background: #0f1b2b; border: 1px solid var(--panel-border); border-radius: 12px; padding: 12px 14px; cursor: pointer; }
+  .switch-row b { display: block; font-size: 16px; }
+  .switch-row small { display: block; color: var(--text-muted); font: 12.5px system-ui, sans-serif; margin-top: 2px; }
+  .switch-row input { position: absolute; opacity: 0; pointer-events: none; }
+  .switch { flex: none; position: relative; width: 52px; height: 30px; border-radius: 15px; background: #3a4658; transition: background .2s; }
+  .switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: 50%; background: #fff; transition: transform .2s; box-shadow: 0 2px 4px rgba(0,0,0,.4); }
+  .switch-row input:checked + .switch { background: var(--accent); }
+  .switch-row input:checked + .switch::after { transform: translateX(22px); }
+  .switch-row input:focus-visible + .switch { outline: 2px solid #fff; outline-offset: 2px; }
+  .admin-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+  .admin-live { max-height: 55vh; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <span class="eyebrow">sustainability escape room · 3 rooms · team exercise</span>
+    <h1>Escape the wasteful building</h1>
+    <p class="sub">Every room is leaking energy and resources. Find the real problems to push each room's <b>sustainability meter to 100%</b> and unlock the door to the next room. Careful: some things <b>look</b> wasteful but are fine. <span class="bad-note">Five false alarms and the room resets.</span> Clear all three rooms before the clock runs out.</p>
+  </header>
+
+  <div class="tabs" id="room-steps"></div>
+
+  <div class="status-bar">
+    <div class="status-group">
+      <div class="status-item"><span class="status-label">team</span><span class="status-value team-value" id="team-display">—</span></div>
+      <div class="status-item"><span class="status-label">time left</span><span class="status-value" id="timer-display">12:00</span></div>
+      <div class="status-item"><span class="status-label">score</span><span class="status-value good" id="score-display">0</span></div>
+      <div class="status-item"><span class="status-label">false alarms</span><span class="status-value bad" id="miss-display">0 / 5</span></div>
+    </div>
+    <div class="controls">
+      <button class="action" id="hint-btn" onclick="showHint()">Hint (3)</button>
+      <button class="action" id="reveal-btn" onclick="revealRoom()">Reveal answers</button>
+      <button class="action replay-btn" id="reset-btn" onclick="playAgain()">Restart</button>
+    </div>
+  </div>
+
+  <div class="progress-wrap">
+    <div class="progress-head"><span id="progress-label">Office floor sustainability</span><span id="progress-pct">0%</span></div>
+    <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+    <div class="progress-note" id="progress-note">Restore this room to 100% to unlock the door</div>
+  </div>
+
+  <div class="scene-frame">
+    <div id="scene-scroll"><div id="scene-svg"></div></div>
+    <div class="zoom-ctrl">
+      <button id="zoom-out" onclick="zoomBy(1/1.4)" aria-label="Zoom out">&minus;</button>
+      <button id="zoom-fit" onclick="zoomFit()" aria-label="Show the whole room">&#x2922;</button>
+      <button id="zoom-in" onclick="zoomBy(1.4)" aria-label="Zoom in">+</button>
+    </div>
+    <div class="pan-hint" id="pan-hint">Swipe to look around &middot; pinch to zoom</div>
+    <div class="toast" id="toast"></div>
+    <div class="banner" id="banner"></div>
+  </div>
+
+  <div class="board-wrap live-wrap" id="live-wrap" style="display:none">
+    <div class="board-head"><h2><span class="live-dot"></span>Playing now</h2><span class="live-count" id="live-count"></span></div>
+    <div class="board-scroll live-scroll">
+      <table class="board">
+        <thead><tr><th>Team</th><th>Room</th><th>Progress</th><th>Score</th><th>Time left</th><th>Status</th></tr></thead>
+        <tbody id="live-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="board-wrap">
+    <div class="board-head">
+      <h2>Scoreboard</h2>
+      <button class="action" id="board-clear" onclick="clearScoreboard()" style="display:none">Clear scoreboard</button>
+    </div>
+    <div class="board-scroll">
+      <table class="board">
+        <thead><tr><th>#</th><th>Team</th><th>Score</th><th>Rooms</th><th>Time</th><th>False alarms</th></tr></thead>
+        <tbody id="board-body"></tbody>
+      </table>
+    </div>
+    <div class="board-note" id="board-note"></div>
+  </div>
+
+  <div class="found-list">
+    <h2>problems fixed in this room</h2>
+    <div class="found-grid" id="found-grid"></div>
+  </div>
+
+  <div class="decoy-grid" id="decoy-grid">
+    <h2 style="font-size:13px;font-family:var(--font-mono);color:var(--text-muted);margin:0 0 10px;">things that look wasteful but are actually fine</h2>
+    <div class="found-grid" id="decoy-grid-inner"></div>
+  </div>
+
+  <footer class="note">
+    Facilitator tip — play as teams taking turns on one screen, or have each team play on their own device and compare final scores. "Reveal answers" skips a room with no points, and after the game it walks everyone through every problem and every decoy.
+  </footer>
+
+</div>
+
+<div class="admin" id="admin" hidden>
+  <div class="admin-card">
+    <div class="admin-top">
+      <h2>Admin</h2>
+      <button class="action" onclick="closeAdmin()">Close</button>
+    </div>
+    <p class="admin-mode" id="adm-mode"></p>
+    <div id="adm-login">
+      <div class="name-row" id="adm-pw-row">
+        <input id="adm-pw" type="password" placeholder="Admin password" autocomplete="current-password" onkeydown="if(event.key==='Enter')adminLogin()">
+        <button class="action primary" onclick="adminLogin()">Log in</button>
+      </div>
+      <p class="admin-msg" id="adm-login-msg"></p>
+    </div>
+    <div id="adm-main" hidden>
+      <div class="admin-toggles">
+        <label class="switch-row"><span><b>Reveal answers button</b><small>Lets players skip a room and see its answers</small></span>
+          <input type="checkbox" id="adm-reveal" onchange="adminToggle()"><i class="switch"></i></label>
+        <label class="switch-row"><span><b>Play again button</b><small>Lets players start a new game after finishing</small></span>
+          <input type="checkbox" id="adm-replay" onchange="adminToggle()"><i class="switch"></i></label>
+      </div>
+      <div class="admin-actions">
+        <button class="action" id="adm-clear" onclick="adminClearBoard()">Clear scoreboard</button>
+        <button class="action" onclick="adminLogout()">Log out</button>
+      </div>
+      <div class="board-head"><h2><span class="live-dot"></span>Playing now</h2><span class="live-count" id="adm-live-count"></span></div>
+      <div class="board-scroll admin-live">
+        <table class="board">
+          <thead><tr><th>Team</th><th>Room</th><th>Progress</th><th>Score</th><th>Time left</th><th>Status</th></tr></thead>
+          <tbody id="adm-live-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+// =====================================================================
+//  SHARED SCOREBOARD SETUP (for hosting on GitHub Pages or any site)
+//  Paste your Supabase project URL and publishable key below.
+//  Leave them empty to keep scores on each device only.
+//  The publishable key is designed to be public; the database rules
+//  (see README) only allow reading scores and adding new ones.
+// =====================================================================
+var SUPABASE_URL = "https://lkzqgwhmnpjyxohzmyac.supabase.co";   // e.g. "https://abcdefghijkl.supabase.co"
+var SUPABASE_KEY = "sb_publishable_7CaIYbJhhjVfDbtxIotURg_CgIhomm6";   // e.g. "sb_publishable_..." (or the legacy anon key)
+
+
+
+var ROOMS = {
+  office: {
+    label: "Office floor",
+    issues: [
+      { id:"o1", title:"Monitor left on, desk empty", desc:"The chair is tucked in and nobody is there, but the screen is still lit. A short auto-sleep timer fixes this across the whole fleet without anyone needing to remember." },
+      { id:"o2", title:"Space heater running under a desk", desc:"Personal heaters bypass the building heating system entirely and are far less efficient per degree of warmth. It usually means the shared heating is not balanced properly." },
+      { id:"o3", title:"Printer idle-on with a huge single-sided stack", desc:"An idle printer still draws standby power, and a single-sided default roughly doubles paper use for no reason." },
+      { id:"o4", title:"Blinds open while the AC unit runs", desc:"Direct sun fighting the air conditioning means the AC has to work harder to hold the same temperature. Closing blinds on sun-facing glass is free cooling." },
+      { id:"o5", title:"Charger left plugged in, nothing attached", desc:"A charger with no device still pulls a small standby current. Trivial for one desk, not trivial multiplied across a whole floor." },
+      { id:"o6", title:"Recyclable cup and can in general waste", desc:"A recyclable cup and can routed to landfill because the nearest bin is the general one. Bin placement matters more than good intentions." },
+      { id:"o7", title:"Desktop tower running full tilt, desk empty", desc:"A workstation left at full power outside working hours instead of sleep or hibernate is one of the easiest fleet-wide wins available." },
+      { id:"o8", title:"Meeting room lit up, nobody inside", desc:"Occupancy-sensor lighting pays for itself quickly in rooms that sit empty most of the day." },
+      { id:"o9", title:"Comms cupboard door ajar, light left on", desc:"A small comms cupboard does not need its light on when nobody is working in it, and an open door lets conditioned air drift in and out." },
+      { id:"o10", title:"Corridor door wedged open with heating on", desc:"Heating a room while its door stands open to an unheated corridor means a good share of that heat is warming the corridor instead." },
+    ],
+    decoys: [
+      { id:"d1", title:"Laptop charging, someone working", desc:"A charger with a laptop actually attached and in use. Normal, necessary power draw — nothing to flag here." },
+      { id:"d2", title:"Recycling bin, correctly sorted", desc:"Paper and cans in the recycling bin, exactly where they belong. This is the system working as intended." },
+      { id:"d3", title:"Occupied meeting room, lights on", desc:"People are actually in the room using it. Lights on for an occupied meeting are not a waste." },
+      { id:"d4", title:"Monitor off at an empty desk", desc:"Screen is dark and fully powered down. This is the correct end-of-day state, not an issue." },
+      { id:"d5", title:"Motion-sensor light fixture", desc:"This light has a motion sensor fitted, so it switches itself off when the area is empty. Leaving it as-is is correct." },
+    ],
+  },
+  comms: {
+    label: "Comms room",
+    issues: [
+      { id:"c1", title:"Door propped open with a wedge", desc:"Every minute this door sits open, conditioned cold air leaks out and the cooling unit has to work harder to recover it." },
+      { id:"c2", title:"Rack facing the wrong way", desc:"A rack turned backwards breaks hot-aisle/cold-aisle containment and recirculates warm exhaust straight back into its own intake." },
+      { id:"c3", title:"Cabling tangled across the vents", desc:"A messy cable run blocking an intake or exhaust vent restricts airflow, forcing fans and cooling to work harder for the same result." },
+      { id:"c4", title:"Legacy switch powered, no active ports", desc:"Fully powered hardware serving zero live connections is pure waste. Decommission it or actually put it to use." },
+      { id:"c5", title:"Rack with gaps, missing blanking panels", desc:"Open gaps in a rack let cold supply air bypass the equipment entirely instead of passing through it, wasting cooling capacity." },
+      { id:"c6", title:"Thermostat reset from 15°C to 20°C", desc:"Overcooling the comms room to 15°C burns power for no reliability benefit. 20°C is the target set point for this room." },
+      { id:"c7", title:"UPS batteries years overdue for replacement", desc:"Ageing UPS batteries lose efficiency and capacity long before they visibly fail, and they get replaced eventually anyway — a scheduled swap beats an unplanned outage." },
+      { id:"c8", title:"Boxes stacked in front of a vent", desc:"Storage does not belong in a comms room at all, and stacking boxes against a return vent is a textbook way to create a localised hot spot." },
+      { id:"c9", title:"Decommissioned test server still powered on", desc:"A small labelled unit from a finished project, still drawing power on a shelf nobody has looked at since. Easy to miss, easy to switch off." },
+      { id:"c10", title:"Occupancy sensor taped over, light always on", desc:"Someone taped over the sensor so the light stays on permanently, defeating the point of having one at all." },
+    ],
+    decoys: [
+      { id:"d1", title:"Rack correctly filled, tidy cabling", desc:"Full blanking panels, correct front-facing orientation, cabling routed clear of the vents. This rack is doing everything right." },
+      { id:"d2", title:"UPS with a recent replacement sticker", desc:"Batteries swapped on schedule and logged. This is maintenance working as intended, not a problem." },
+      { id:"d3", title:"Switch with several ports actively lit", desc:"Real traffic on real connections. A busy switch doing its job is not waste." },
+      { id:"d4", title:"Cabling neatly bundled, vents clear", desc:"Velcro-tied and routed away from the airflow path. This is exactly how cable management should look." },
+    ],
+  },
+  store: {
+    label: "IT store room",
+    issues: [
+      { id:"s1", title:"Old laptops in the general waste", desc:"Laptops are e-waste. They contain valuable and hazardous materials and must go through certified WEEE recycling — or better still be wiped and reused. In the general bin they end up in landfill." },
+      { id:"s2", title:"Loose batteries in a general bin", desc:"Batteries in general waste are a fire risk in bin lorries and a waste of recoverable metals. They belong in a battery recycling tube." },
+      { id:"s3", title:"Working monitors marked for disposal", desc:"The sign says every one tested as working. Most of a monitor's lifetime carbon footprint comes from manufacturing it, so reusing or donating working kit is a big win." },
+      { id:"s4", title:"Charging cart at 100%, still charging", desc:"Every device is full, but the cart keeps drawing power around the clock. A timer plug or a smart-charging cart stops this." },
+      { id:"s5", title:"Soldering station left on, bench empty", desc:"Holding 350°C with nobody there: wasted energy and a fire risk. Most stations have an auto-sleep setting worth switching on." },
+      { id:"s6", title:"Toner cartridges in the rubbish", desc:"Used cartridges can go back to the supplier for remanufacture or recycling. In the rubbish they go to landfill with plastic and residual toner." },
+      { id:"s7", title:"Stock cage locked, light left on", desc:"The cage is padlocked with nobody inside, yet the light is on. Storage areas are ideal for occupancy sensors or timer switches." },
+      { id:"s8", title:"Giant box for one tiny part", desc:"One small SFP module arrived in a huge box stuffed with packing peanuts. Pushing suppliers towards consolidated deliveries and minimal, recyclable packaging cuts this waste." },
+      { id:"s9", title:"AV kit left on standby", desc:"The projector, speaker and extension lead all show standby lights. Each draws a little power constantly — switching off at the wall stops it in one go." },
+      { id:"s10", title:"Window open with the heating on", desc:"Warm air pours out as fast as the radiator heats it. Close the window or turn the radiator down — not both on at once." },
+    ],
+    decoys: [
+      { id:"d1", title:"WEEE recycling cage", desc:"Old laptops and cables in the labelled WEEE cage are exactly where they should be for certified e-waste recycling." },
+      { id:"d2", title:"Battery recycling tube", desc:"Used batteries collected in the proper recycling tube. This is correct." },
+      { id:"d3", title:"Refurbish and reuse shelf", desc:"Old laptops that have been tested and wiped, waiting to be reissued. Extending device life is one of the biggest sustainability wins in IT." },
+      { id:"d4", title:"Technician using the test bench", desc:"Kit switched on while someone is actively using it is not waste." },
+      { id:"d5", title:"Toner returns box", desc:"Cartridges boxed up for the supplier's free returns scheme — the right way to handle them." },
+    ],
+  }
+};
+
+
+// ---------- Cartoon drawing helpers ----------
+var INK = "#202b3b";
+
+function glossyDefs() {
+  function rg(id, c0, c1, c2) {
+    return '<radialGradient id="' + id + '" cx="32%" cy="28%" r="80%">' +
+      '<stop offset="0%" stop-color="' + c0 + '"/>' +
+      '<stop offset="55%" stop-color="' + c1 + '"/>' +
+      '<stop offset="100%" stop-color="' + c2 + '"/>' +
+    '</radialGradient>';
+  }
+  return '<defs>' +
+    rg('g-teal', '#a9f2de', '#3fbfa0', '#1c7f69') +
+    rg('g-coral', '#ffc0a9', '#f2785c', '#b8452c') +
+    rg('g-mustard', '#ffe796', '#f2b807', '#c78900') +
+    rg('g-sky', '#cfe9ff', '#5aa7e0', '#2c6ca3') +
+    rg('g-plum', '#dcc6f2', '#9b7fc7', '#6a4794') +
+    rg('g-leaf', '#b6ecba', '#6bb37a', '#397248') +
+    rg('g-leafLight', '#c7f5cb', '#7fc98c', '#4c9058') +
+    rg('g-wood', '#f6d6a4', '#dba468', '#a06d33') +
+    rg('g-woodDark', '#ecd2a6', '#c9a877', '#8c6a3a') +
+    rg('g-metal', '#5c6c85', '#2c3b52', '#111a29') +
+    rg('g-cream', '#ffffff', '#eef2f6', '#c7d1db') +
+    rg('g-charcoal', '#8a95a2', '#5b6572', '#2c3138') +
+    rg('g-rack', '#f5f8fb', '#d9e2ec', '#a4b3c4') +
+    rg('g-skin1', '#ffe6c8', '#f2c29b', '#c9905e') +
+    rg('g-skin2', '#e9bd93', '#c68a5b', '#8a5a30') +
+    rg('g-star', '#fff8d6', '#ffd94a', '#dc8f00') +
+    rg('g-burst', '#ffbfa9', '#f2785c', '#a83c22') +
+    rg('g-screenOff', '#3c4a63', '#2b3446', '#161d29') +
+    rg('g-floorOffice', '#f6e0b4', '#e7c594', '#ad7c40') +
+    rg('g-floorComms', '#e2ebf4', '#c3d0de', '#7d90a4') +
+    '<linearGradient id="g-skyOffice" x1="0" y1="0" x2="0" y2="1">' +
+      '<stop offset="0%" stop-color="#ffe3c2"/><stop offset="48%" stop-color="#ffd0e0"/><stop offset="100%" stop-color="#dcc8f0"/>' +
+    '</linearGradient>' +
+    '<linearGradient id="g-skyComms" x1="0" y1="0" x2="0" y2="1">' +
+      '<stop offset="0%" stop-color="#241a44"/><stop offset="48%" stop-color="#1c2f5e"/><stop offset="100%" stop-color="#123047"/>' +
+    '</linearGradient>' +
+    '<filter id="softShadow" x="-60%" y="-60%" width="220%" height="220%">' +
+      '<feGaussianBlur in="SourceGraphic" stdDeviation="5"/>' +
+    '</filter>' +
+    '<filter id="glow" x="-80%" y="-80%" width="260%" height="260%">' +
+      '<feGaussianBlur in="SourceGraphic" stdDeviation="8" result="b"/>' +
+      '<feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>' +
+    '</filter>' +
+    '<linearGradient id="g-wallOffice" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fdf6e8"/><stop offset="100%" stop-color="#f0dfc0"/></linearGradient>' +
+    '<linearGradient id="g-floorWood" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#d4a062"/><stop offset="100%" stop-color="#edc68c"/></linearGradient>' +
+    '<linearGradient id="g-wallComms" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#e8eff6"/><stop offset="100%" stop-color="#cdd9e6"/></linearGradient>' +
+    '<linearGradient id="g-floorTile" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#b3c1d0"/><stop offset="100%" stop-color="#d8e1ea"/></linearGradient>' +
+    '<linearGradient id="g-outside" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#7cc6ff"/><stop offset="100%" stop-color="#d8f0ff"/></linearGradient>' +
+    '<radialGradient id="g-space" cx="40%" cy="35%" r="75%"><stop offset="0%" stop-color="#3a4f8c"/><stop offset="100%" stop-color="#121a38"/></radialGradient>' +
+    '<linearGradient id="g-corridor" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#2b3650"/><stop offset="100%" stop-color="#4a5c82"/></linearGradient>' +
+    '<linearGradient id="g-wallStore" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#f0f2e8"/><stop offset="100%" stop-color="#d9dfcc"/></linearGradient>' +
+    '<linearGradient id="g-floorConcrete" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#aeaaa2"/><stop offset="100%" stop-color="#d4d0c8"/></linearGradient>' +
+    '<filter id="toy" x="-15%" y="-15%" width="130%" height="130%" color-interpolation-filters="sRGB">' +
+      '<feGaussianBlur in="SourceAlpha" stdDeviation="2.2" result="blur"/>' +
+      '<feSpecularLighting in="blur" surfaceScale="3.5" specularConstant="0.85" specularExponent="18" lighting-color="#ffffff" result="spec">' +
+        '<fePointLight x="-300" y="-400" z="350"/>' +
+      '</feSpecularLighting>' +
+      '<feComposite in="spec" in2="SourceAlpha" operator="in" result="specIn"/>' +
+      '<feComposite in="SourceGraphic" in2="specIn" operator="arithmetic" k1="0" k2="1" k3="0.6" k4="0"/>' +
+    '</filter>' +
+    '<radialGradient id="g-vignette" cx="50%" cy="45%" r="75%">' +
+      '<stop offset="60%" stop-color="#0a1030" stop-opacity="0"/><stop offset="100%" stop-color="#0a1030" stop-opacity="0.45"/>' +
+    '</radialGradient>' +
+    '<linearGradient id="g-beam" x1="0" y1="0" x2="0" y2="1">' +
+      '<stop offset="0%" stop-color="#ffffff" stop-opacity="0.9"/><stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>' +
+    '</linearGradient>' +
+  '</defs>';
+}
+function starPoints(cx, cy, rOuter, rInner, spikes, rotDeg) {
+  var rot = (Math.PI / 180) * rotDeg;
+  var step = Math.PI / spikes;
+  var pts = [];
+  for (var i = 0; i < spikes * 2; i++) {
+    var r = (i % 2 === 0) ? rOuter : rInner;
+    var ang = rot + i * step;
+    var x = cx + Math.cos(ang) * r;
+    var y = cy + Math.sin(ang) * r;
+    pts.push(x.toFixed(1) + "," + y.toFixed(1));
+  }
+  return pts.join(" ");
+}
+function sparkle(cx, cy, r, opacity) {
+  return '<path d="M' + cx + ' ' + (cy - r) + ' L' + (cx + r * 0.28) + ' ' + (cx ? cy - r * 0.28 : 0) + '" fill="none"/>' +
+    '<g opacity="' + opacity + '">' +
+      '<path d="M' + cx + ' ' + (cy - r) + ' Q' + cx + ' ' + cy + ' ' + (cx + r) + ' ' + cy + ' Q' + cx + ' ' + cy + ' ' + cx + ' ' + (cy + r) + ' Q' + cx + ' ' + cy + ' ' + (cx - r) + ' ' + cy + ' Q' + cx + ' ' + cy + ' ' + cx + ' ' + (cy - r) + ' Z" fill="#ffffff"/>' +
+    '</g>';
+}
+
+function shadow(cx, cy, rx, ry) {
+  return '<ellipse cx="' + cx + '" cy="' + cy + '" rx="' + rx + '" ry="' + ry + '" fill="' + INK + '" opacity="0.13"/>';
+}
+function markGood(id, cx, cy) {
+  var pts = starPoints(cx, cy, 16, 7, 5, -90);
+  return '<g id="mark-' + id + '" class="mark">' +
+    '<polygon points="' + pts + '" fill="url(#g-star)" stroke="' + INK + '" stroke-width="2.5" stroke-linejoin="round" filter="url(#glow)"/>' +
+    '<circle cx="' + (cx - 4) + '" cy="' + (cy - 5) + '" r="2.5" fill="#ffffff" opacity="0.9"/>' +
+  '</g>';
+}
+function markBad(id, cx, cy) {
+  var pts = starPoints(cx, cy, 15, 8, 8, -90);
+  return '<g id="mark-' + id + '" class="mark">' +
+    '<polygon points="' + pts + '" fill="url(#g-burst)" stroke="' + INK + '" stroke-width="2.5" stroke-linejoin="round"/>' +
+    '<path d="M' + (cx - 5) + ' ' + (cy - 5) + ' l10 10 M' + (cx + 5) + ' ' + (cy - 5) + ' l-10 10" stroke="#5a2418" stroke-width="3" stroke-linecap="round"/>' +
+  '</g>';
+}
+function deskShape(x, y, w) {
+  var legH = 38;
+  return '<g>' +
+    shadow(x + w / 2, y + 16 + legH, w * 0.42, 8) +
+    '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="16" rx="6" fill="url(#g-wood)" stroke="' + INK + '" stroke-width="3"/>' +
+    '<rect x="' + (x + 10) + '" y="' + (y + 15) + '" width="9" height="' + legH + '" fill="#b3793f" stroke="' + INK + '" stroke-width="2.5"/>' +
+    '<rect x="' + (x + w - 19) + '" y="' + (y + 15) + '" width="9" height="' + legH + '" fill="#b3793f" stroke="' + INK + '" stroke-width="2.5"/>' +
+  '</g>';
+}
+function monitorShape(x, y, on) {
+  var screenFill = on ? "url(#g-teal)" : "url(#g-screenOff)";
+  return '<g>' +
+    '<rect x="' + x + '" y="' + y + '" width="76" height="52" rx="10" fill="url(#g-metal)" stroke="' + INK + '" stroke-width="3"/>' +
+    '<rect x="' + (x + 7) + '" y="' + (y + 7) + '" width="62" height="38" rx="5" fill="' + screenFill + '"/>' +
+    '<circle cx="' + (x + 68) + '" cy="' + (y + 48.5) + '" r="1.8" fill="' + (on ? '#7dffd9' : '#55606e') + '"/>' +
+    (on ? '<rect x="' + (x + 13) + '" y="' + (y + 13) + '" width="22" height="15" rx="2" fill="#ffffff" opacity="0.85"/><rect x="' + (x + 39) + '" y="' + (y + 19) + '" width="24" height="19" rx="2" fill="#ffffff" opacity="0.7"/>' : '') +
+    (on ? '<path d="M' + (x + 16) + ' ' + (y + 15) + ' l16 -5" stroke="#cff5e8" stroke-width="3" stroke-linecap="round" opacity="0.75"/>' : '') +
+    '<rect x="' + (x + 30) + '" y="' + (y + 52) + '" width="16" height="10" fill="url(#g-metal)" stroke="' + INK + '" stroke-width="2.5"/>' +
+    '<rect x="' + (x + 22) + '" y="' + (y + 62) + '" width="32" height="6" rx="3" fill="url(#g-metal)" stroke="' + INK + '" stroke-width="2"/>' +
+  '</g>';
+}
+function keyboard(x, y) {
+  var k = '<g>' +
+    '<rect x="' + x + '" y="' + y + '" width="56" height="11" rx="3" fill="url(#g-cream)" stroke="' + INK + '" stroke-width="2.5"/>';
+  for (var r = 0; r < 2; r++) {
+    for (var i = 0; i < 7; i++) {
+      k += '<rect x="' + (x + 4 + i * 7) + '" y="' + (y + 2.5 + r * 4) + '" width="5" height="2.5" rx="0.8" fill="#9aa8b8"/>';
+    }
+  }
+  k += '<ellipse cx="' + (x + 68) + '" cy="' + (y + 5) + '" rx="6" ry="7.5" fill="url(#g-cream)" stroke="' + INK + '" stroke-width="2.5"/>' +
+    '<line x1="' + (x + 68) + '" y1="' + (y - 2) + '" x2="' + (x + 68) + '" y2="' + (y + 3) + '" stroke="' + INK + '" stroke-width="1.5"/>' +
+  '</g>';
+  return k;
+}
+function planet(cx, cy, r, fill) {
+  var a = r * 1.9, b = r * 0.45;
+  return '<g transform="rotate(-18 ' + cx + ' ' + cy + ')">' +
+    '<ellipse cx="' + cx + '" cy="' + cy + '" rx="' + a + '" ry="' + b + '" fill="none" stroke="#ffffff" stroke-opacity="0.35" stroke-width="3"/>' +
+    '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="' + fill + '" stroke="' + INK + '" stroke-width="2"/>' +
+    '<path d="M' + (cx - a) + ' ' + cy + ' A' + a + ' ' + b + ' 0 0 0 ' + (cx + a) + ' ' + cy + '" fill="none" stroke="#ffffff" stroke-opacity="0.8" stroke-width="3"/>' +
+  '</g>';
+}
+function applyToyShading(svg) {
+  return svg.replace(/<(rect|circle|ellipse|path|polygon)\b([^>]*)>/g, function(tag) {
+    if (tag.indexOf('filter=') !== -1) return tag;
+    if (!/fill="url\(#g-(?!sky|floor|star|burst|wall|outside|space|corridor)/.test(tag)) return tag;
+    return tag.replace(/^<(\w+)/, '<$1 filter="url(#toy)"');
+  });
+}
+function sceneOverlay(dark) {
+  var o = '<g pointer-events="none">';
+  o += '<polygon points="90,0 250,0 560,560 200,560" fill="url(#g-beam)" opacity="' + (dark ? 0.08 : 0.16) + '"/>';
+  var motes = [[140,210],[330,140],[520,260],[700,120],[860,230],[930,380],[250,420],[610,400],[450,90],[780,320]];
+  motes.forEach(function(m, i) {
+    o += '<circle class="drift" style="animation-delay:' + (i * 0.6).toFixed(1) + 's" cx="' + m[0] + '" cy="' + m[1] + '" r="' + (2 + (i % 3)) + '" fill="' + (dark ? '#bfe9ff' : '#fff6d8') + '"/>';
+  });
+  o += '<rect id="smog" x="0" y="0" width="1000" height="560" fill="#5d5046" style="opacity:0.34;transition:opacity .7s ease"/>';
+  o += '<rect x="0" y="0" width="1000" height="560" fill="url(#g-vignette)"/>';
+  o += '</g>';
+  return o;
+}
+function chairEmpty(x, y) {
+  return '<g>' +
+    shadow(x + 19, y + 48, 22, 6) +
+    '<rect x="' + x + '" y="' + y + '" width="38" height="32" rx="10" fill="url(#g-sky)" stroke="' + INK + '" stroke-width="3"/>' +
+    '<rect x="' + x + '" y="' + (y + 30) + '" width="38" height="11" rx="5" fill="#3d82b8" stroke="' + INK + '" stroke-width="2.5"/>' +
+    '<line x1="' + (x + 19) + '" y1="' + (y + 41) + '" x2="' + (x + 19) + '" y2="' + (y + 50) + '" stroke="' + INK + '" stroke-width="3"/>' +
+    '<line x1="' + (x + 6) + '" y1="' + (y + 51) + '" x2="' + (x + 32) + '" y2="' + (y + 51) + '" stroke="' + INK + '" stroke-width="3.5" stroke-linecap="round"/>' +
+    '<circle cx="' + (x + 6) + '" cy="' + (y + 55) + '" r="3" fill="#3a4658" stroke="' + INK + '" stroke-width="1.5"/>' +
+    '<circle cx="' + (x + 32) + '" cy="' + (y + 55) + '" r="3" fill="#3a4658" stroke="' + INK + '" stroke-width="1.5"/>' +
+  '</g>';
+}
+function person(x, y, skin, hair, shirt) {
+  return '<g>' +
+    shadow(x, y + 42, 22, 6) +
+    '<rect x="' + (x - 17) + '" y="' + (y + 6) + '" width="34" height="32" rx="11" fill="' + shirt + '" stroke="' + INK + '" stroke-width="3"/>' +
+    '<circle cx="' + x + '" cy="' + y + '" r="17" fill="' + skin + '" stroke="' + INK + '" stroke-width="3"/>' +
+    '<path d="M' + (x - 17) + ' ' + (y - 6) + ' q17 -20 34 0 q-3 -6 -17 -6 q-14 0 -17 6 z" fill="' + hair + '" stroke="' + INK + '" stroke-width="2.5"/>' +
+    '<circle cx="' + (x - 6) + '" cy="' + (y + 1) + '" r="2.2" fill="' + INK + '"/>' +
+    '<circle cx="' + (x + 6) + '" cy="' + (y + 1) + '" r="2.2" fill="' + INK + '"/>' +
+    '<path d="M' + (x - 6) + ' ' + (y + 8) + ' q6 5 12 0" stroke="' + INK + '" stroke-width="2.2" fill="none" stroke-linecap="round"/>' +
+  '</g>';
+}
+function plant(x, y) {
+  return '<g>' +
+    shadow(x + 20, y + 58, 22, 6) +
+    '<path d="M' + x + ' ' + (y + 40) + ' h40 l-6 20 h-28 z" fill="#c4703f" stroke="' + INK + '" stroke-width="3"/>' +
+    '<rect x="' + x + '" y="' + (y + 34) + '" width="40" height="8" rx="3" fill="#d98750" stroke="' + INK + '" stroke-width="2.5"/>' +
+    '<circle cx="' + (x + 20) + '" cy="' + (y + 16) + '" r="17" fill="url(#g-leaf)" stroke="' + INK + '" stroke-width="3"/>' +
+    '<circle cx="' + (x + 2) + '" cy="' + (y + 27) + '" r="14" fill="url(#g-leafLight)" stroke="' + INK + '" stroke-width="3"/>' +
+    '<circle cx="' + (x + 38) + '" cy="' + (y + 27) + '" r="14" fill="url(#g-leafLight)" stroke="' + INK + '" stroke-width="3"/>' +
+  '</g>';
+}
+function bin(x, y, color, contents) {
+  return '<g>' +
+    shadow(x + 23, y + 62, 24, 6) +
+    '<path d="M' + x + ' ' + (y + 12) + ' h46 l-7 48 h-32 z" fill="' + color + '" stroke="' + INK + '" stroke-width="3"/>' +
+    '<rect x="' + (x - 4) + '" y="' + (y + 2) + '" width="54" height="12" rx="5" fill="' + color + '" stroke="' + INK + '" stroke-width="3"/>' +
+    contents +
+  '</g>';
+}
+
+// ---------- Scene builders ----------
+function poly(pts, fill, extra) {
+  return '<polygon points="' + pts + '" fill="' + fill + '"' + (extra || '') + '/>';
+}
+var SK = ' stroke="' + INK + '" stroke-width="2.5" stroke-linejoin="round"';
+function txt(x, y, str, size, fill, weight) {
+  return '<text x="' + x + '" y="' + y + '" text-anchor="middle" fill="' + (fill || INK) + '" font-family="IBM Plex Mono, monospace" font-size="' + size + '" font-weight="' + (weight || 600) + '">' + str + '</text>';
+}
+function hot(id, kind, x, y, w, h) {
+  return '<g class="hotspot" data-id="' + id + '" data-kind="' + kind + '"><rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="10"/></g>';
+}
+function bulb(cx, top, len, on) {
+  var by = top + len;
+  var g = '<g>';
+  g += '<rect x="' + (cx - 7) + '" y="' + (top - 3) + '" width="14" height="5" rx="2" fill="#dfe6ee" stroke="' + INK + '" stroke-width="1.5"/>';
+  g += '<line x1="' + cx + '" y1="' + top + '" x2="' + cx + '" y2="' + by + '" stroke="' + INK + '" stroke-width="2"/>';
+  if (on) g += '<circle cx="' + cx + '" cy="' + (by + 20) + '" r="30" fill="#ffe98a" opacity="0.55" filter="url(#softShadow)"/>';
+  g += '<rect x="' + (cx - 6) + '" y="' + by + '" width="12" height="9" rx="2" fill="#8e98a6" stroke="' + INK + '" stroke-width="2"/>';
+  g += '<path d="M' + (cx - 5) + ' ' + (by + 9) + ' C' + (cx - 15) + ' ' + (by + 14) + ' ' + (cx - 15) + ' ' + (by + 31) + ' ' + cx + ' ' + (by + 32) + ' C' + (cx + 15) + ' ' + (by + 31) + ' ' + (cx + 15) + ' ' + (by + 14) + ' ' + (cx + 5) + ' ' + (by + 9) + ' Z" fill="' + (on ? '#fff4b8' : '#d9dee6') + '" stroke="' + INK + '" stroke-width="2.2"/>';
+  g += '<path d="M' + (cx - 4) + ' ' + (by + 23) + ' l2 -6 l2 5 l2 -5 l2 6" fill="none" stroke="' + (on ? '#f28a1a' : '#8e98a6') + '" stroke-width="1.6" stroke-linejoin="round"/>';
+  g += '<path d="M' + (cx - 8) + ' ' + (by + 16) + ' q-2 6 1 10" stroke="#ffffff" stroke-width="2" fill="none" opacity="0.85" stroke-linecap="round"/>';
+  g += '</g>';
+  return g;
+}
+function heatWaves(x, y, n, color) {
+  var g = '';
+  for (var i = 0; i < n; i++) {
+    var hx = x + i * 14;
+    g += '<path d="M' + hx + ' ' + y + ' q5 -5 0 -10 q-5 -5 0 -10" fill="none" stroke="' + color + '" stroke-width="2.5" stroke-linecap="round" opacity="0.85"/>';
+  }
+  return g;
+}
+function box3d(x, y, w, h, d, front, top, side) {
+  var cx = x + w / 2, dx = d * ((500 - cx) / 500) * 0.9;
+  var s = shadow(cx, y + h + 3, w * 0.52, 7);
+  s += poly(x + ',' + y + ' ' + (x + w) + ',' + y + ' ' + (x + w + dx) + ',' + (y - d) + ' ' + (x + dx) + ',' + (y - d), top, SK);
+  if (dx > 0) s += poly((x + w) + ',' + y + ' ' + (x + w + dx) + ',' + (y - d) + ' ' + (x + w + dx) + ',' + (y + h - d) + ' ' + (x + w) + ',' + (y + h), side, SK);
+  else s += poly(x + ',' + y + ' ' + (x + dx) + ',' + (y - d) + ' ' + (x + dx) + ',' + (y + h - d) + ' ' + x + ',' + (y + h), side, SK);
+  s += '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="4" fill="' + front + '"' + SK + '/>';
+  return s;
+}
+function desk3d(x, y, w) {
+  var cx = x + w / 2, d = 22, dx = d * ((500 - cx) / 500) * 0.9;
+  var s = shadow(cx, y + 57, w * 0.5, 9);
+  s += '<rect x="' + (x + dx + 8) + '" y="' + (y - d + 10) + '" width="8" height="46" fill="#8c5a2b"' + SK + '/>';
+  s += '<rect x="' + (x + w + dx - 16) + '" y="' + (y - d + 10) + '" width="8" height="46" fill="#8c5a2b"' + SK + '/>';
+  s += poly(x + ',' + y + ' ' + (x + w) + ',' + y + ' ' + (x + w + dx) + ',' + (y - d) + ' ' + (x + dx) + ',' + (y - d), 'url(#g-wood)', SK);
+  s += '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="10" rx="3" fill="#b3793f"' + SK + '/>';
+  s += '<rect x="' + (x + 8) + '" y="' + (y + 10) + '" width="9" height="46" fill="#a06d33"' + SK + '/>';
+  s += '<rect x="' + (x + w - 17) + '" y="' + (y + 10) + '" width="9" height="46" fill="#a06d33"' + SK + '/>';
+  return s;
+}
+function meetingRoom(x0, x1, occupied, label) {
+  var top = 46, bottom = 232, inset = 16, bTop = 36, bBot = 214, cx = (x0 + x1) / 2;
+  var s = '<g>';
+  s += shadow(cx, bottom + 3, (x1 - x0) / 2, 6);
+  s += poly(x0 + ',' + bottom + ' ' + x1 + ',' + bottom + ' ' + (x1 - inset) + ',' + bBot + ' ' + (x0 + inset) + ',' + bBot, '#9fb4c8');
+  s += '<rect x="' + (x0 + inset) + '" y="' + bTop + '" width="' + (x1 - x0 - 2 * inset) + '" height="' + (bBot - bTop) + '" fill="#f4f7fa"/>';
+  s += poly(x0 + ',' + top + ' ' + (x0 + inset) + ',' + bTop + ' ' + (x0 + inset) + ',' + bBot + ' ' + x0 + ',' + bottom, '#d4e0eb');
+  s += poly(x1 + ',' + top + ' ' + (x1 - inset) + ',' + bTop + ' ' + (x1 - inset) + ',' + bBot + ' ' + x1 + ',' + bottom, '#d4e0eb');
+  s += poly(x0 + ',' + top + ' ' + x1 + ',' + top + ' ' + (x1 - inset) + ',' + bTop + ' ' + (x0 + inset) + ',' + bTop, '#e6edf4');
+  // wall TV
+  var tvW = 80, tvX = cx - tvW / 2, tvY = 96;
+  s += '<rect x="' + tvX + '" y="' + tvY + '" width="' + tvW + '" height="46" rx="4" fill="url(#g-metal)"' + SK + '/>';
+  if (occupied) {
+    s += '<rect x="' + (tvX + 5) + '" y="' + (tvY + 5) + '" width="' + (tvW - 10) + '" height="36" rx="2" fill="#eef8ff"/>';
+    var bars = [14, 22, 17, 28];
+    for (var b = 0; b < 4; b++) {
+      s += '<rect x="' + (tvX + 16 + b * 14) + '" y="' + (tvY + 38 - bars[b]) + '" width="9" height="' + bars[b] + '" fill="' + ['#5aa7e0', '#3fbfa0', '#f2b807', '#f2785c'][b] + '"/>';
+    }
+  }
+  // ceiling lights inside the room — on in both
+  s += bulb(x0 + 48, 50, 14, true) + bulb(x1 - 48, 50, 14, true);
+  // chairs behind table / people
+  if (occupied) {
+    s += person(cx - 62, 168, 'url(#g-skin1)', '#3b2a20', 'url(#g-coral)');
+    s += person(cx, 164, 'url(#g-skin2)', '#1b1b1b', 'url(#g-sky)');
+    s += person(cx + 62, 168, 'url(#g-skin1)', '#b5651d', 'url(#g-leaf)');
+  } else {
+    [-60, 0, 60].forEach(function(o) {
+      s += '<rect x="' + (cx + o - 14) + '" y="170" width="28" height="30" rx="8" fill="url(#g-sky)"' + SK + '/>';
+    });
+  }
+  // table
+  var rx = (x1 - x0) * 0.32;
+  s += '<rect x="' + (cx - 6) + '" y="200" width="12" height="26" fill="#8e98a6"' + SK + '/>';
+  s += '<ellipse cx="' + cx + '" cy="203" rx="' + rx + '" ry="12" fill="#a06d33"' + SK + '/>';
+  s += '<ellipse cx="' + cx + '" cy="198" rx="' + rx + '" ry="12" fill="url(#g-wood)"' + SK + '/>';
+  if (occupied) {
+    s += '<path d="M' + (cx - 12) + ' 198 h24 l4 -12 h-24 z" fill="url(#g-cream)" stroke="' + INK + '" stroke-width="1.8"/>';
+    s += '<rect x="' + (cx - 38) + '" y="193" width="12" height="7" rx="2" fill="#ffffff" stroke="' + INK + '" stroke-width="1.5"/>';
+  } else {
+    [-34, 34].forEach(function(o) {
+      s += '<rect x="' + (cx + o - 15) + '" y="208" width="30" height="20" rx="7" fill="url(#g-sky)"' + SK + '/>';
+    });
+  }
+  // glass front, frame, door, reflections
+  s += '<rect x="' + x0 + '" y="' + top + '" width="' + (x1 - x0) + '" height="' + (bottom - top) + '" rx="5" fill="#cfe6f7" fill-opacity="0.16" stroke="' + INK + '" stroke-width="3.5"/>';
+  s += '<rect x="' + x0 + '" y="' + top + '" width="' + (x1 - x0) + '" height="14" rx="4" fill="url(#g-cream)"' + SK + '/>';
+  s += txt(cx, top + 10.5, label, 8.5, '#3a4658');
+  var doorX = x1 - (x1 - x0) * 0.3;
+  s += '<line x1="' + doorX + '" y1="' + (top + 14) + '" x2="' + doorX + '" y2="' + bottom + '" stroke="#7f95ab" stroke-width="3"/>';
+  s += '<rect x="' + (doorX + 8) + '" y="140" width="4" height="30" rx="2" fill="#8e98a6" stroke="' + INK + '" stroke-width="1.5"/>';
+  s += '<path d="M' + (x0 + 18) + ' ' + (top + 40) + ' l34 60 M' + (x0 + 36) + ' ' + (top + 34) + ' l20 36" stroke="#ffffff" stroke-width="4" opacity="0.5" stroke-linecap="round"/>';
+  s += '</g>';
+  return s;
+}
+function roomShell(wall, floor, sideWall, ceiling, backY, floorLines) {
+  var s = '';
+  s += poly('0,0 1000,0 960,' + (backY === 215 ? 36 : 30) + ' 40,' + (backY === 215 ? 36 : 30), ceiling);
+  var wt = backY === 215 ? 36 : 30;
+  s += '<rect x="40" y="' + wt + '" width="920" height="' + (backY - wt) + '" fill="' + wall + '"/>';
+  s += '<rect x="40" y="' + (backY - 9) + '" width="920" height="9" fill="' + sideWall + '" opacity="0.9"/>';
+  s += poly('0,0 40,' + wt + ' 40,' + backY + ' 0,' + (backY + 50), sideWall);
+  s += poly('1000,0 960,' + wt + ' 960,' + backY + ' 1000,' + (backY + 50), sideWall);
+  s += poly('40,' + backY + ' 960,' + backY + ' 1000,' + (backY + 50) + ' 1000,560 0,560 0,' + (backY + 50), floor);
+  // perspective lines toward vanishing point
+  var vpY = backY - 575, k = (560 - vpY) / (backY - vpY);
+  for (var bx = 40 + 46; bx < 960; bx += 46) {
+    s += '<line x1="' + bx + '" y1="' + backY + '" x2="' + (500 + (bx - 500) * k) + '" y2="560" stroke="' + floorLines + '" stroke-width="2" opacity="0.55"/>';
+  }
+  var ys = backY === 215 ? [226, 244, 270, 306, 352, 410, 480] : [292, 312, 340, 378, 428, 490];
+  ys.forEach(function(y) {
+    s += '<line x1="0" y1="' + y + '" x2="1000" y2="' + y + '" stroke="' + floorLines + '" stroke-width="1.5" opacity="0.35"/>';
+  });
+  // corner edges
+  s += '<path d="M40 ' + wt + ' V' + backY + ' L0 ' + (backY + 50) + ' M960 ' + wt + ' V' + backY + ' L1000 ' + (backY + 50) + ' M40 ' + backY + ' H960" stroke="' + INK + '" stroke-width="2" opacity="0.35" fill="none"/>';
+  return s;
+}
+
+function officeSVG() {
+  var s = '<svg viewBox="0 0 1000 560" xmlns="http://www.w3.org/2000/svg">';
+  s += glossyDefs();
+  s += roomShell('url(#g-wallOffice)', 'url(#g-floorWood)', '#e3cda6', '#efe4d0', 215, '#b98546');
+  // sunbeam from window onto floor
+  s += poly('70,215 244,215 318,330 96,330', '#fff3b0', ' opacity="0.35"');
+
+  // WINDOW + AC (o4)
+  s += '<rect x="58" y="58" width="196" height="124" rx="6" fill="url(#g-cream)" stroke="' + INK + '" stroke-width="3.5"/>';
+  s += '<rect x="68" y="68" width="176" height="104" rx="3" fill="url(#g-outside)"/>';
+  s += '<g stroke="#f2b807" stroke-width="3.5" stroke-linecap="round"><line x1="100" y1="88" x2="100" y2="80"/><line x1="84" y1="96" x2="77" y2="91"/><line x1="116" y1="96" x2="123" y2="91"/><line x1="82" y1="112" x2="74" y2="112"/></g>';
+  s += '<circle cx="100" cy="110" r="15" fill="#ffd84a" stroke="' + INK + '" stroke-width="2.2"/>';
+  s += '<ellipse cx="150" cy="140" rx="22" ry="9" fill="#ffffff"/><ellipse cx="166" cy="134" rx="14" ry="9" fill="#ffffff"/>';
+  s += planet(212, 104, 9, 'url(#g-plum)');
+  s += '<rect x="153" y="68" width="6" height="104" fill="#f4f7fa" stroke="' + INK + '" stroke-width="1.5"/>';
+  s += '<rect x="64" y="62" width="184" height="14" rx="5" fill="#f7f1e2"' + SK + '/>';
+  s += '<line x1="70" y1="69" x2="242" y2="69" stroke="#d9cfb4" stroke-width="2"/>';
+  s += '<line x1="236" y1="76" x2="236" y2="118" stroke="' + INK + '" stroke-width="1.5"/><circle cx="236" cy="121" r="3" fill="#d9cfb4" stroke="' + INK + '" stroke-width="1.5"/>';
+  s += '<rect x="52" y="180" width="208" height="9" rx="3" fill="url(#g-cream)"' + SK + '/>';
+  s += '<rect x="270" y="66" width="82" height="30" rx="8" fill="url(#g-cream)" stroke="' + INK + '" stroke-width="3"/>';
+  s += '<line x1="280" y1="86" x2="342" y2="86" stroke="#8fa6bb" stroke-width="2.5" stroke-linecap="round"/><line x1="280" y1="91" x2="342" y2="91" stroke="#8fa6bb" stroke-width="2.5" stroke-linecap="round"/>';
+  s += '<circle cx="342" cy="75" r="3" fill="#3fbfa0"/>' + txt(292, 79, 'AC', 8, '#5c6b7c');
+  s += '<g stroke="#7fc8f0" stroke-width="2.5" fill="none" stroke-linecap="round">' +
+    '<path d="M286 104 q4 8 0 16 q-4 8 0 16"/><path d="M311 104 q4 8 0 16 q-4 8 0 16"/><path d="M336 104 q4 8 0 16 q-4 8 0 16"/></g>';
+
+  // MOTION-SENSOR LIGHT (d5)
+  s += bulb(392, 4, 20, true);
+  s += '<path d="M406 5 a8 8 0 0 0 16 0 z" fill="#f4f7fa" stroke="' + INK + '" stroke-width="1.8"/><circle cx="414" cy="8" r="2" fill="#f2785c"/>';
+  s += '<rect x="366" y="68" width="52" height="24" rx="4" fill="#ffffff"' + SK + '/>' + txt(392, 78, 'motion', 7.5, '#3a4658') + txt(392, 88, 'sensor', 7.5, '#3a4658');
+
+  // MEETING ROOMS (o8 empty, d3 occupied)
+  s += meetingRoom(430, 640, false, 'Meeting room 1');
+  s += meetingRoom(668, 952, true, 'Meeting room 2');
+
+  // ROW 1 — desk A (o1: monitor on, empty)
+  s += desk3d(40, 290, 192) + monitorShape(62, 206, true) + keyboard(128, 272) + chairEmpty(112, 300);
+  // heater (o2)
+  s += heatWaves(252, 304, 3, '#f2785c');
+  s += '<rect x="244" y="306" width="48" height="46" rx="8" fill="url(#g-cream)" stroke="' + INK + '" stroke-width="3"/>';
+  s += '<rect x="251" y="314" width="34" height="22" rx="3" fill="#ffb199" stroke="' + INK + '" stroke-width="2"/>';
+  s += '<g stroke="#f2785c" stroke-width="3" stroke-linecap="round"><line x1="255" y1="320" x2="281" y2="320"/><line x1="255" y1="326" x2="281" y2="326"/><line x1="255" y1="332" x2="281" y2="332"/></g>';
+  s += '<circle cx="284" cy="344" r="3" fill="#f2b807" stroke="' + INK + '" stroke-width="1.5"/>';
+  s += shadow(268, 354, 26, 5);
+  // desk B (d4: monitor off, empty)
+  s += desk3d(300, 290, 192) + monitorShape(322, 206, false) + keyboard(388, 272) + chairEmpty(372, 300);
+  // desk C (d1: laptop charging, someone working)
+  s += person(600, 232, 'url(#g-skin1)', '#b5651d', 'url(#g-plum)');
+  s += desk3d(520, 290, 200);
+  s += '<rect x="568" y="248" width="64" height="30" rx="4" fill="url(#g-charcoal)"' + SK + '/><circle cx="600" cy="262" r="4" fill="#c9d3dc"/>';
+  s += '<rect x="562" y="276" width="76" height="5" rx="2" fill="#8e98a6"' + SK + '/>';
+  s += '<path d="M636 274 q14 -2 18 4" stroke="' + INK + '" stroke-width="2.5" fill="none" stroke-linecap="round"/>';
+  s += '<rect x="648" y="274" width="46" height="8" rx="2" fill="url(#g-cream)"' + SK + '/><rect x="652" y="270" width="10" height="8" rx="2" fill="#5c6b7c" stroke="' + INK + '" stroke-width="1.5"/><circle cx="688" cy="278" r="2" fill="#3fbfa0"/>';
+  // printer (o3)
+  s += box3d(768, 300, 150, 46, 14, 'url(#g-woodDark)', '#e4c99a', '#a78352');
+  s += '<line x1="780" y1="322" x2="906" y2="322" stroke="' + INK + '" stroke-width="2" opacity="0.6"/>';
+  s += box3d(772, 250, 142, 42, 14, 'url(#g-cream)', '#f5f7fa', '#b7c3cf');
+  s += '<rect x="860" y="258" width="44" height="14" rx="3" fill="url(#g-teal)" stroke="' + INK + '" stroke-width="1.8"/>' + txt(882, 268, '1-SIDED', 6.5, '#07322a', 700);
+  s += '<circle cx="846" cy="265" r="3" fill="#3fbfa0" stroke="' + INK + '" stroke-width="1.2"/>';
+  for (var p = 0; p < 5; p++) {
+    s += '<rect x="' + (790 + p * 3) + '" y="' + (284 - p * 3) + '" width="62" height="10" rx="1.5" fill="#fdf8ee" stroke="' + INK + '" stroke-width="1.4" transform="rotate(' + (p % 2 ? -3 : 2) + ' 820 290)"/>';
+  }
+
+  // ROW 2 — desk D (o7: tower running, desk empty)
+  s += desk3d(40, 418, 192) + keyboard(96, 400) + chairEmpty(112, 428);
+  s += heatWaves(242, 404, 2, '#f2785c');
+  s += shadow(254, 473, 20, 5);
+  s += '<rect x="238" y="410" width="32" height="62" rx="6" fill="url(#g-metal)" stroke="' + INK + '" stroke-width="3"/>';
+  s += '<circle cx="254" cy="424" r="5" fill="#7dffd9" filter="url(#glow)"/><circle cx="254" cy="424" r="4" fill="#7dffd9" stroke="' + INK + '" stroke-width="1.5"/>';
+  s += '<circle cx="254" cy="452" r="9" fill="none" stroke="#5aa7e0" stroke-width="2"/><path d="M248 452 h12 M254 446 v12" stroke="#5aa7e0" stroke-width="1.5"/>';
+  // desk E (o5: charger plugged in, nothing attached)
+  s += desk3d(284, 418, 192);
+  s += '<rect x="298" y="390" width="16" height="20" rx="3" fill="url(#g-sky)"' + SK + '/><path d="M314 396 q7 0 7 7 q0 4 -7 4" stroke="' + INK + '" stroke-width="2" fill="none"/>';
+  s += '<rect x="330" y="398" width="34" height="12" rx="1" fill="#fdf8ee" stroke="' + INK + '" stroke-width="1.5"/>';
+  s += '<rect x="400" y="402" width="54" height="9" rx="2" fill="url(#g-cream)"' + SK + '/><circle cx="448" cy="406" r="2" fill="#f2785c"/>';
+  s += '<rect x="408" y="388" width="16" height="16" rx="3" fill="url(#g-cream)"' + SK + '/>';
+  s += '<path d="M416 404 q2 16 -10 30 q-6 8 -2 16" stroke="' + INK + '" stroke-width="2.5" fill="none" stroke-linecap="round"/>';
+  s += '<rect x="400" y="448" width="8" height="10" rx="2" fill="#5c6b7c" stroke="' + INK + '" stroke-width="1.5"/>';
+  s += chairEmpty(362, 428);
+  // bins (d2 recycling correct, o6 general waste with recyclables)
+  s += bin(520, 398, 'url(#g-sky)',
+    '<rect x="532" y="382" width="16" height="22" rx="1" fill="#fdf8ee" stroke="' + INK + '" stroke-width="1.8" transform="rotate(-12 540 392)"/>' +
+    '<rect x="552" y="386" width="12" height="18" rx="3" fill="#c9d3dc" stroke="' + INK + '" stroke-width="1.8"/>');
+  s += '<path d="M536 438 a9 9 0 1 1 16 0" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/><path d="M548 434 l5 5 l2 -7" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>';
+  s += txt(544, 452, 'RECYCLE', 6.5, '#ffffff', 700);
+  s += bin(610, 398, 'url(#g-charcoal)',
+    '<path d="M624 404 l3 -20 h14 l3 20 z" fill="#fdf8ee" stroke="' + INK + '" stroke-width="1.8"/><rect x="622" y="380" width="24" height="5" rx="2" fill="#6b4a2e" stroke="' + INK + '" stroke-width="1.5"/><rect x="625" y="392" width="18" height="6" fill="#b3793f"/>' +
+    '<rect x="646" y="388" width="12" height="17" rx="3" fill="#c9d3dc" stroke="' + INK + '" stroke-width="1.8"/>');
+  s += txt(633, 438, 'GENERAL', 6.5, '#ffffff', 700) + txt(633, 447, 'WASTE', 6.5, '#ffffff', 700);
+  s += plant(870, 372);
+
+  // ROW 3 — comms cupboard (o9: door ajar, light on)
+  s += box3d(40, 482, 190, 74, 10, 'url(#g-woodDark)', '#e4c99a', '#a78352');
+  s += '<rect x="136" y="486" width="90" height="70" fill="#27303f"/>';
+  s += '<circle cx="181" cy="510" r="30" fill="#ffe98a" opacity="0.45" filter="url(#softShadow)"/>';
+  s += '<line x1="181" y1="486" x2="181" y2="492" stroke="#dfe6ee" stroke-width="2"/><circle cx="181" cy="499" r="7" fill="#fff4b8" stroke="' + INK + '" stroke-width="1.8"/>';
+  s += '<rect x="146" y="522" width="70" height="14" rx="2" fill="url(#g-metal)" stroke="#9fb0c2" stroke-width="1.5"/>';
+  [0, 1, 2, 3, 4].forEach(function(i) { s += '<circle cx="' + (154 + i * 9) + '" cy="529" r="2" fill="' + (i % 2 ? '#f2b807' : '#3fbfa0') + '"/>'; });
+  s += '<line x1="136" y1="482" x2="136" y2="556" stroke="' + INK + '" stroke-width="2.5"/>';
+  s += '<circle cx="126" cy="520" r="3" fill="#8e98a6" stroke="' + INK + '" stroke-width="1.5"/>' + txt(88, 504, 'COMMS', 8, '#5a4323');
+  s += poly('230,484 266,496 266,560 230,560', 'url(#g-woodDark)', SK);
+  s += plant(300, 490);
+  // water cooler (decor)
+  s += box3d(470, 500, 40, 54, 8, 'url(#g-cream)', '#f5f7fa', '#b7c3cf');
+  s += '<rect x="474" y="466" width="32" height="30" rx="10" fill="#9fd6f5" fill-opacity="0.85"' + SK + '/><rect x="484" y="516" width="12" height="6" rx="2" fill="#5aa7e0"/>';
+
+  // PARTITION + CORRIDOR DOOR (o10: wedged open, radiator on)
+  s += '<rect x="700" y="456" width="264" height="104" fill="url(#g-wallOffice)" stroke="' + INK + '" stroke-width="3"/>';
+  s += '<rect x="696" y="446" width="272" height="12" rx="3" fill="url(#g-woodDark)"' + SK + '/>';
+  s += '<rect x="850" y="480" width="82" height="80" fill="url(#g-corridor)"' + SK + '/>';
+  s += poly('850,560 932,560 918,534 864,534', '#56678a');
+  s += '<rect x="852" y="462" width="78" height="14" rx="3" fill="#ffffff"' + SK + '/>' + txt(891, 472, 'CORRIDOR', 7.5, '#3a4658');
+  s += poly('850,480 814,490 814,560 850,560', 'url(#g-woodDark)', SK);
+  s += '<circle cx="822" cy="522" r="3" fill="#8e98a6" stroke="' + INK + '" stroke-width="1.5"/>';
+  s += poly('796,560 818,560 818,547', 'url(#g-mustard)', SK);
+  s += heatWaves(726, 490, 4, '#f2785c');
+  s += '<rect x="716" y="494" width="84" height="40" rx="6" fill="url(#g-cream)" stroke="' + INK + '" stroke-width="3"/>';
+  for (var f = 0; f < 8; f++) s += '<line x1="' + (724 + f * 10) + '" y1="499" x2="' + (724 + f * 10) + '" y2="529" stroke="#b7c3cf" stroke-width="2.5"/>';
+  s += '<path d="M800 512 q30 -14 56 -2" stroke="#f2785c" stroke-width="3" fill="none" stroke-linecap="round" stroke-dasharray="6 5"/><path d="M850 505 l7 5 l-8 3" stroke="#f2785c" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>';
+
+  // HOTSPOTS (all emitted last so no scenery sits on top of them)
+  s += hot('o4', 'issue', 50, 50, 308, 150);
+  s += hot('d5', 'decoy', 362, 0, 60, 150);
+  s += hot('o8', 'issue', 424, 30, 222, 204);
+  s += hot('d3', 'decoy', 662, 30, 296, 204);
+  s += hot('o1', 'issue', 36, 204, 200, 158);
+  s += hot('o2', 'issue', 238, 286, 58, 76);
+  s += hot('d4', 'decoy', 298, 236, 198, 126);
+  s += hot('d1', 'decoy', 514, 236, 212, 126);
+  s += hot('o3', 'issue', 746, 236, 198, 126);
+  s += hot('o7', 'issue', 36, 364, 242, 106);
+  s += hot('o5', 'issue', 282, 364, 198, 106);
+  s += hot('d2', 'decoy', 510, 372, 72, 100);
+  s += hot('o6', 'issue', 600, 372, 72, 100);
+  s += hot('o9', 'issue', 36, 474, 234, 86);
+  s += hot('o10', 'issue', 696, 440, 272, 120);
+
+  s += markGood('o4', 156, 120) + markBad('d5', 392, 42) + markGood('o8', 535, 160) + markBad('d3', 810, 150);
+  s += markGood('o1', 100, 232) + markGood('o2', 268, 330) + markBad('d4', 360, 244) + markBad('d1', 670, 252) + markGood('o3', 845, 266);
+  s += markGood('o7', 254, 438) + markGood('o5', 430, 392) + markBad('d2', 544, 426) + markGood('o6', 634, 422);
+  s += markGood('o9', 181, 506) + markGood('o10', 891, 520);
+  s += '</svg>';
+  return s;
+}
+
+var RACK_LAYOUTS = {
+  'good':       [['patch',1],['switch',1],['patch',1],['switch',1],['blank',1],['server1u',1],['server1u',1],['server2u',2],['blank',1],['firewall',1],['server2u',2],['blank',1],['server1u',1],['blank',1]],
+  'gaps':       [['patch',1],['switch',1],['server1u',1],['gap',3],['server2u',2],['gap',2],['server1u',1],['firewall',1],['gap',3],['server1u',1]],
+  'switch-off': [['legacy',3],['blank',1],['server2u',2],['server1u',1],['blank',1],['server2u',2],['server1u',1],['blank',1],['server2u',2],['server1u',1],['blank',1]],
+  'switch-on':  [['bigswitch',3],['bigswitch',3],['patch',1],['firewall',1],['server1u',1],['server2u',2],['blank',1],['server2u',2],['server1u',1],['blank',1]],
+  'backwards':  [['rear',2],['rear',1],['rear',1],['rear',2],['rear',2],['rear',1],['rear',2],['rear',2],['rear',1],['rear',2]]
+};
+var CABLE_COLS = ['#5aa7e0', '#f2b807', '#3fbfa0', '#f2785c', '#9b7fc7'];
+var rackOverlay = '';
+function rackUnit(type, y, h) {
+  var x0 = 16, w = 118, s = '', i;
+  if (type === 'gap') {
+    // empty U: straight through to the black back of the cabinet, cold air bypassing the kit
+    s += '<rect x="' + x0 + '" y="' + y + '" width="' + w + '" height="' + h + '" fill="#07090d"/>';
+    var rows = Math.max(1, Math.floor(h / 10));
+    for (i = 0; i < rows; i++) {
+      var ay = y + (h / (rows + 1)) * (i + 1);
+      s += '<path d="M24 ' + ay + ' q8 -3 16 0 t16 0 t16 0 t16 0 t16 0 t16 0" fill="none" stroke="#7fc8f0" stroke-width="1.8" stroke-linecap="round" opacity="0.9"/>';
+      s += '<path d="M118 ' + (ay - 3) + ' l6 3 l-6 3" fill="none" stroke="#7fc8f0" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>';
+    }
+    return s;
+  }
+  var face = { patch: '#e4e9ef', 'switch': '#bfc8d3', legacy: '#d9cfb4', bigswitch: '#2f3743', server1u: '#d3d9e0', server2u: '#3a4048', firewall: '#d6453b', blank: '#4a515d', rear: '#262b33' }[type];
+  s += '<rect x="' + x0 + '" y="' + (y + 0.5) + '" width="' + w + '" height="' + (h - 1) + '" rx="1" fill="' + face + '" stroke="#11151b" stroke-width="0.9"/>';
+  s += '<rect x="' + x0 + '" y="' + (y + 0.5) + '" width="4" height="' + (h - 1) + '" fill="#8a94a1"/><rect x="' + (x0 + w - 4) + '" y="' + (y + 0.5) + '" width="4" height="' + (h - 1) + '" fill="#8a94a1"/>';
+  if (type === 'legacy' || type === 'bigswitch') {
+    var active = type === 'bigswitch';
+    s += '<rect x="' + (x0 + 7) + '" y="' + (y + 5) + '" width="40" height="11" rx="1.5" fill="#0d1520"/>';
+    s += '<text x="' + (x0 + 27) + '" y="' + (y + 12.6) + '" text-anchor="middle" fill="' + (active ? '#7dffd9' : '#ffb347') + '" font-family="IBM Plex Mono, monospace" font-size="5.6" font-weight="700">' + (active ? 'LINKS 46/48' : 'LINKS 0/48') + '</text>';
+    s += '<text x="' + (x0 + 27) + '" y="' + (y + 22.5) + '" text-anchor="middle" fill="' + (active ? '#9fb0c2' : '#7a6640') + '" font-family="IBM Plex Mono, monospace" font-size="4.6" font-weight="700">' + (active ? 'CORE SW' : 'LEGACY SW') + '</text>';
+    s += '<circle cx="' + (x0 + w - 7) + '" cy="' + (y + 6) + '" r="1.6" fill="#7dffd9"/>';
+    for (var pr = 0; pr < 2; pr++) for (i = 0; i < 8; i++) {
+      var bx = x0 + 52 + i * 7.6, by = y + 6 + pr * 9.5;
+      s += '<rect x="' + bx + '" y="' + by + '" width="6" height="5.4" rx="0.6" fill="#0b0e13" stroke="' + (active ? '#11151b' : '#a8997a') + '" stroke-width="0.6"/>';
+      if (active) {
+        var col = CABLE_COLS[(i + pr * 3) % 5];
+        s += '<rect x="' + (bx + 0.9) + '" y="' + (by + 0.9) + '" width="4.2" height="3.8" rx="0.5" fill="' + col + '"/>';
+        s += '<circle cx="' + (bx + 3) + '" cy="' + (by - 1.3) + '" r="0.9" fill="#7dffd9"/>';
+        rackOverlay += '<path d="M' + (bx + 3) + ' ' + (by + 4.5) + ' C' + (bx + 3) + ' ' + (by + 14 + pr * 4) + ' ' + (126 - i * 0.6) + ' ' + (y + h + 2 + pr * 3) + ' ' + (129 + (i % 3)) + ' ' + (y + h + 22 + i * 1.6) + '" fill="none" stroke="' + col + '" stroke-width="1.5" stroke-linecap="round" opacity="0.95"/>';
+      }
+    }
+  } else if (type === 'patch' || type === 'switch') {
+    var rowsY = [y + 1.8, y + 5.2];
+    var lit = 0;
+    rowsY.forEach(function(ry, r) {
+      for (i = 0; i < 22; i++) {
+        var px = x0 + 9 + i * 4.6 + (i >= 11 ? 3 : 0);
+        s += '<rect x="' + px + '" y="' + ry + '" width="3.2" height="2.4" fill="#1a1e24"/>';
+        if (type === 'switch' && (i * 7 + r * 3) % 5 !== 0) {
+          s += '<rect x="' + (px + 0.8) + '" y="' + (ry + 0.5) + '" width="1.6" height="1.2" fill="#7dffd9"/>';
+          lit++;
+        }
+      }
+    });
+    if (type === 'switch') {
+      // patch leads running up into the patch panel above
+      for (i = 0; i < 9; i++) {
+        var cx = x0 + 11 + i * 11.5;
+        s += '<path d="M' + cx + ' ' + (y + 2) + ' q' + (i % 2 ? 2 : -2) + ' -4 ' + (i % 2 ? 1 : -1) + ' -7" fill="none" stroke="' + CABLE_COLS[i % 5] + '" stroke-width="1.6" stroke-linecap="round"/>';
+      }
+    }
+  } else if (type === 'server1u') {
+    for (i = 0; i < 8; i++) s += '<rect x="' + (x0 + 8 + i * 11) + '" y="' + (y + 2) + '" width="9" height="5" rx="0.6" fill="#f4f7fa" stroke="#5c6672" stroke-width="0.6"/>';
+    s += '<rect x="' + (x0 + 98) + '" y="' + (y + 2.5) + '" width="10" height="4" fill="#2a2f38"/><circle cx="' + (x0 + w - 7) + '" cy="' + (y + 4.5) + '" r="1.3" fill="#7dffd9"/>';
+  } else if (type === 'server2u') {
+    for (var rr = 0; rr < 2; rr++) for (i = 0; i < 6; i++) {
+      s += '<rect x="' + (x0 + 8 + i * 14) + '" y="' + (y + 2.5 + rr * 7) + '" width="12" height="5.5" rx="0.6" fill="#6b7480" stroke="#1a1e24" stroke-width="0.6"/>';
+      s += '<line x1="' + (x0 + 10 + i * 14) + '" y1="' + (y + 5.2 + rr * 7) + '" x2="' + (x0 + 17 + i * 14) + '" y2="' + (y + 5.2 + rr * 7) + '" stroke="#c9d3dc" stroke-width="0.6"/>';
+    }
+    s += '<circle cx="' + (x0 + w - 9) + '" cy="' + (y + 5) + '" r="1.6" fill="#5aa7e0"/><circle cx="' + (x0 + w - 9) + '" cy="' + (y + 11) + '" r="1.3" fill="#7dffd9"/>';
+  } else if (type === 'firewall') {
+    s += '<rect x="' + (x0 + 46) + '" y="' + (y + 2.5) + '" width="22" height="4" rx="1" fill="#ffffff"/>';
+    for (i = 0; i < 6; i++) s += '<rect x="' + (x0 + 76 + i * 5.5) + '" y="' + (y + 3) + '" width="3.4" height="2.6" fill="#3a1410"/>';
+    s += '<circle cx="' + (x0 + 12) + '" cy="' + (y + 4.5) + '" r="1.3" fill="#7dffd9"/>';
+  } else if (type === 'blank') {
+    s += '<circle cx="' + (x0 + 2) + '" cy="' + (y + h / 2) + '" r="1" fill="#2a2f38"/><circle cx="' + (x0 + w - 2) + '" cy="' + (y + h / 2) + '" r="1" fill="#2a2f38"/>';
+    for (i = 0; i < 18; i++) s += '<rect x="' + (x0 + 14 + i * 5) + '" y="' + (y + 3.5) + '" width="2.5" height="2" fill="#3a4048"/>';
+  } else if (type === 'rear') {
+    // rear of kit: fans, PSUs, power leads
+    s += '<circle cx="' + (x0 + 14) + '" cy="' + (y + h / 2) + '" r="' + (h / 2 - 1.2) + '" fill="#11151b" stroke="#6b7480" stroke-width="0.8"/>';
+    s += '<circle cx="' + (x0 + 28) + '" cy="' + (y + h / 2) + '" r="' + (h / 2 - 1.2) + '" fill="#11151b" stroke="#6b7480" stroke-width="0.8"/>';
+    s += '<rect x="' + (x0 + 84) + '" y="' + (y + 1.5) + '" width="26" height="' + (h - 3) + '" fill="#3a4048" stroke="#6b7480" stroke-width="0.6"/>';
+    s += '<rect x="' + (x0 + 100) + '" y="' + (y + h / 2 - 1.5) + '" width="5" height="3" fill="#11151b"/>';
+  }
+  return s;
+}
+function rack3d(x, kind) {
+  var s = box3d(x, 150, 150, 170, 10, 'url(#g-metal)', '#5c6c85', '#1c2636');
+  s += '<g transform="translate(' + x + ',150)">';
+  s += txt(75, 11, 'RACK ' + (Math.round((x - 70) / 170) + 1), 7, '#c9d3dc', 700);
+  s += '<rect x="8" y="16" width="134" height="148" rx="2" fill="#07090d" stroke="#11151b" stroke-width="1.5"/>';
+  // mounting rails with cage-nut holes
+  [10, 134].forEach(function(rx) {
+    s += '<rect x="' + rx + '" y="16" width="6" height="148" fill="#5c6672"/>';
+    for (var hy = 21.5; hy < 164; hy += 3) s += '<rect x="' + (rx + 2) + '" y="' + hy + '" width="2" height="1.6" fill="#07090d"/>';
+  });
+  var yy = 20;
+  rackOverlay = '';
+  RACK_LAYOUTS[kind].forEach(function(u) {
+    s += rackUnit(u[0], yy, u[1] * 9);
+    yy += u[1] * 9;
+  });
+  s += rackOverlay;
+  if (kind === 'backwards') {
+    s += '<g stroke-width="2.2" fill="none" stroke-linecap="round" opacity="0.95">' +
+      '<path d="M20 34 q30 14 56 0 t54 4" stroke="#3fbfa0"/><path d="M20 70 q30 16 56 0 t54 -4" stroke="#f2785c"/>' +
+      '<path d="M20 104 q30 12 56 0 t54 6" stroke="#f2b807"/><path d="M20 136 q30 18 56 0 t54 -2" stroke="#5aa7e0"/></g>';
+    s += '<rect x="44" y="146" width="62" height="13" rx="3" fill="#ffffff" stroke="' + INK + '" stroke-width="1.5"/>' + txt(75, 155.5, 'REAR', 8, '#3a4658', 700);
+  }
+  s += '</g>';
+  return s;
+}
+function ventUnit(x, kind) {
+  var s = box3d(x, 350, 150, 118, 10, 'url(#g-cream)', '#f5f7fa', '#b4c2d0');
+  s += '<rect x="' + (x + 45) + '" y="356" width="60" height="13" rx="3" fill="#ffffff" stroke="' + INK + '" stroke-width="1.8"/>' + txt(x + 75, 366, 'AIR VENT', 7.5, '#3a4658', 700);
+  s += '<rect x="' + (x + 14) + '" y="376" width="122" height="78" rx="4" fill="#cfd8e2" stroke="' + INK + '" stroke-width="2"/>';
+  for (var i = 0; i < 10; i++) s += '<line x1="' + (x + 20) + '" y1="' + (382 + i * 7) + '" x2="' + (x + 130) + '" y2="' + (382 + i * 7) + '" stroke="#8fa0b3" stroke-width="2"/>';
+  if (kind === 'tangled') {
+    s += '<g stroke-width="4" fill="none" stroke-linecap="round">' +
+      '<path d="M' + (x + 6) + ' 380 q30 40 56 10 t40 30 t30 -24 t20 40" stroke="#3fbfa0"/>' +
+      '<path d="M' + (x + 10) + ' 412 q24 30 50 0 t44 24 t34 -12" stroke="#f2785c"/>' +
+      '<path d="M' + (x + 4) + ' 440 q34 -20 60 6 t50 -14 t30 20" stroke="#f2b807"/>' +
+      '<path d="M' + (x + 20) + ' 396 q40 50 80 20" stroke="#5aa7e0"/></g>';
+  } else if (kind === 'tidy') {
+    s += '<g stroke-width="4" fill="none" stroke-linecap="round">' +
+      '<path d="M' + (x + 8) + ' 462 H' + (x + 142) + '" stroke="#3fbfa0"/><path d="M' + (x + 8) + ' 457 H' + (x + 142) + '" stroke="#f2785c"/><path d="M' + (x + 8) + ' 452 H' + (x + 142) + '" stroke="#f2b807"/></g>';
+    [30, 75, 120].forEach(function(o) { s += '<rect x="' + (x + o - 4) + '" y="448" width="8" height="18" rx="2" fill="#3a4658"/>'; });
+  } else if (kind === 'boxes') {
+    s += box3d(x + 16, 410, 62, 52, 10, 'url(#g-woodDark)', '#ecd2a6', '#a78352');
+    s += box3d(x + 70, 392, 60, 70, 10, 'url(#g-woodDark)', '#ecd2a6', '#a78352');
+    s += '<line x1="' + (x + 47) + '" y1="410" x2="' + (x + 47) + '" y2="462" stroke="#8c6a3a" stroke-width="3"/><line x1="' + (x + 100) + '" y1="392" x2="' + (x + 100) + '" y2="462" stroke="#8c6a3a" stroke-width="3"/>';
+  }
+  return s;
+}
+function upsUnit(x, year) {
+  var s = box3d(x, 350, 150, 118, 10, 'url(#g-metal)', '#5c6c85', '#1c2636');
+  s += '<rect x="' + (x + 18) + '" y="364" width="70" height="30" rx="4" fill="url(#g-teal)" stroke="' + INK + '" stroke-width="2"/>' + txt(x + 53, 383, 'UPS', 11, '#07322a', 700);
+  s += '<rect x="' + (x + 100) + '" y="370" width="26" height="14" rx="2" fill="none" stroke="#c9d3dc" stroke-width="2"/><rect x="' + (x + 126) + '" y="374" width="3" height="6" fill="#c9d3dc"/><rect x="' + (x + 103) + '" y="373" width="' + (year < 2020 ? 6 : 19) + '" height="8" fill="#c9d3dc"/>';
+  for (var i = 0; i < 4; i++) s += '<line x1="' + (x + 18) + '" y1="' + (404 + i * 6) + '" x2="' + (x + 132) + '" y2="' + (404 + i * 6) + '" stroke="#3d4a5e" stroke-width="2.5"/>';
+  s += '<rect x="' + (x + 24) + '" y="434" width="102" height="26" rx="3" fill="#fff3cf" stroke="' + INK + '" stroke-width="2"/>';
+  s += txt(x + 75, 445, 'battery service', 7.5, '#5a4a1e', 600) + txt(x + 75, 456, 'last done: ' + year, 7.5, '#5a4a1e', 700);
+  return s;
+}
+
+function commsSVG() {
+  var s = '<svg viewBox="0 0 1000 560" xmlns="http://www.w3.org/2000/svg">';
+  s += glossyDefs();
+  s += '<defs><clipPath id="porthole-clip"><circle cx="520" cy="86" r="36"/></clipPath></defs>';
+  s += roomShell('url(#g-wallComms)', 'url(#g-floorTile)', '#b9c7d6', '#d6e0ea', 280, '#8fa0b3');
+  // perforated cold-aisle floor tiles
+  [120, 290, 460, 630, 800].forEach(function(tx) {
+    s += poly(tx + ',324 ' + (tx + 60) + ',324 ' + (tx + 62) + ',336 ' + (tx - 2) + ',336', '#aebccb', ' stroke="#8fa0b3" stroke-width="1.5"');
+    for (var dd = 0; dd < 6; dd++) s += '<circle cx="' + (tx + 6 + dd * 10) + '" cy="330" r="1.6" fill="#6d7c8d"/>';
+  });
+
+  // thermostats (c6 at 15°C, d5 at 24°C)
+  var c6Fixed = (typeof game !== 'undefined' && game && game.found.comms.has('c6'));
+  [[60, c6Fixed ? '20°C' : '15°C']].forEach(function(t) {
+    s += '<rect x="' + t[0] + '" y="48" width="112" height="70" rx="12" fill="url(#g-cream)" stroke="' + INK + '" stroke-width="3.5"/>';
+    s += '<rect x="' + (t[0] + 12) + '" y="60" width="88" height="34" rx="7" fill="url(#g-metal)" stroke="' + INK + '" stroke-width="2.5"/>';
+    s += txt(t[0] + 56, 84, t[1], 18, '#7dffd9', 600);
+    s += '<path d="M' + (t[0] + 38) + ' 110 l6 -8 l6 8 z" fill="#5aa7e0" stroke="' + INK + '" stroke-width="1.5" stroke-linejoin="round"/>';
+    s += '<path d="M' + (t[0] + 62) + ' 102 l6 8 l6 -8 z" fill="#5aa7e0" stroke="' + INK + '" stroke-width="1.5" stroke-linejoin="round"/>';
+  });
+  // sign + working (sensor-controlled) light, currently off
+  s += '<rect x="330" y="58" width="104" height="22" rx="4" fill="#ffffff"' + SK + '/>' + txt(382, 73, 'COMMS ROOM', 9, '#3a4658', 700);
+  s += bulb(400, 4, 8, false);
+  s += '<path d="M418 5 a7 7 0 0 0 14 0 z" fill="#f4f7fa" stroke="' + INK + '" stroke-width="1.8"/><circle cx="425" cy="8" r="1.8" fill="#f2785c"/>';
+  // porthole with space view
+  s += '<g clip-path="url(#porthole-clip)"><rect x="480" y="46" width="80" height="80" fill="url(#g-space)"/>';
+  [[500, 66], [540, 70], [508, 108], [548, 110], [528, 58]].forEach(function(p) { s += '<circle cx="' + p[0] + '" cy="' + p[1] + '" r="1.6" fill="#ffffff"/>'; });
+  s += planet(526, 92, 11, 'url(#g-coral)') + '</g>';
+  s += '<circle cx="520" cy="86" r="39" fill="none" stroke="#7d8a9c" stroke-width="7"/><circle cx="520" cy="86" r="42.5" fill="none" stroke="' + INK + '" stroke-width="2"/><circle cx="520" cy="86" r="35.5" fill="none" stroke="' + INK + '" stroke-width="2"/>';
+  for (var bo = 0; bo < 8; bo++) {
+    var a = bo * Math.PI / 4;
+    s += '<circle cx="' + (520 + Math.cos(a) * 39).toFixed(1) + '" cy="' + (86 + Math.sin(a) * 39).toFixed(1) + '" r="1.8" fill="' + INK + '"/>';
+  }
+  // taped occupancy sensor, light stuck on (c10)
+  s += bulb(700, 4, 18, true);
+  s += '<path d="M722 5 a10 10 0 0 0 20 0 z" fill="#f4f7fa" stroke="' + INK + '" stroke-width="1.8"/>';
+  s += '<rect x="718" y="4" width="28" height="7" rx="1" fill="#d9c89c" stroke="' + INK + '" stroke-width="1.2" transform="rotate(20 732 8)"/><rect x="718" y="4" width="28" height="7" rx="1" fill="#d9c89c" stroke="' + INK + '" stroke-width="1.2" transform="rotate(-20 732 8)"/>';
+
+  // rack row
+  s += rack3d(70, 'good') + rack3d(240, 'backwards') + rack3d(410, 'gaps') + rack3d(580, 'switch-off') + rack3d(750, 'switch-on');
+
+  // door on the right wall, wedged open (c1)
+  s += poly('963,125 996,103 996,322 963,277', '#fff1c9', SK);
+  s += '<g stroke="#7fc8f0" stroke-width="2.5" fill="none" stroke-linecap="round">' +
+    '<path d="M912 190 q10 -6 20 0 t20 0"/><path d="M912 222 q10 -6 20 0 t20 0"/><path d="M944 186 l8 4 l-7 5 M944 218 l8 4 l-7 5"/></g>';
+  s += poly('963,125 908,150 908,318 963,277', 'url(#g-woodDark)', SK);
+  s += '<rect x="918" y="186" width="36" height="24" rx="3" fill="#ffffff" stroke="' + INK + '" stroke-width="1.8"/>' + txt(936, 196, 'KEEP', 7, '#b8452c', 700) + txt(936, 205, 'SHUT', 7, '#b8452c', 700);
+  s += '<circle cx="916" cy="240" r="3" fill="#8e98a6" stroke="' + INK + '" stroke-width="1.5"/>';
+  s += poly('902,324 926,324 926,312', 'url(#g-mustard)', SK);
+
+  // floor units row
+  s += ventUnit(60, 'tangled') + ventUnit(240, 'tidy') + ventUnit(410, 'boxes') + upsUnit(580, 2019) + upsUnit(750, 2026);
+
+  // forgotten test server (c9)
+  s += desk3d(70, 506, 260);
+  s += box3d(100, 472, 150, 28, 10, 'url(#g-metal)', '#5c6c85', '#1c2636');
+  [0, 1, 2].forEach(function(i) { s += '<circle cx="' + (116 + i * 10) + '" cy="486" r="2.5" fill="#7dffd9"/>'; });
+  s += '<circle cx="226" cy="486" r="9" fill="none" stroke="#5aa7e0" stroke-width="2"/><path d="M220 486 h12 M226 480 v12" stroke="#5aa7e0" stroke-width="1.5"/>';
+  s += '<path d="M262 478 l58 -4 l4 22 l-58 4 z" fill="#fff3cf"' + SK + '/>' + txt(292, 486, 'TEST', 7.5, '#5a4a1e', 700) + txt(293, 495, 'decomm Q1', 7, '#5a4a1e', 600);
+  // fire extinguisher (decor)
+  s += shadow(436, 553, 16, 4) + '<rect x="424" y="486" width="24" height="66" rx="10" fill="url(#g-coral)" stroke="' + INK + '" stroke-width="2.5"/>';
+  s += '<rect x="430" y="478" width="12" height="10" rx="2" fill="#3a4658"/><path d="M442 482 q14 4 10 22" stroke="' + INK + '" stroke-width="2.5" fill="none"/><rect x="428" y="508" width="16" height="14" rx="2" fill="#ffffff"/>';
+
+  // HOTSPOTS
+  s += hot('c6', 'issue', 56, 44, 120, 90);
+  s += hot('c10', 'issue', 664, 0, 96, 132);
+  s += hot('d1', 'decoy', 68, 136, 164, 188);
+  s += hot('c2', 'issue', 236, 136, 164, 188);
+  s += hot('c5', 'issue', 406, 136, 164, 188);
+  s += hot('c4', 'issue', 576, 136, 164, 188);
+  s += hot('d3', 'decoy', 742, 136, 158, 188);
+  s += hot('c1', 'issue', 900, 90, 100, 240);
+  s += hot('c3', 'issue', 56, 336, 164, 136);
+  s += hot('d4', 'decoy', 234, 336, 164, 136);
+  s += hot('c8', 'issue', 404, 336, 164, 136);
+  s += hot('c7', 'issue', 574, 336, 164, 136);
+  s += hot('d2', 'decoy', 742, 336, 164, 136);
+  s += hot('c9', 'issue', 66, 474, 268, 86);
+
+  s += markGood('c6', 116, 128) + markGood('c10', 700, 40);
+  s += markBad('d1', 145, 235) + markGood('c2', 315, 235) + markGood('c5', 485, 235) + markGood('c4', 655, 235) + markBad('d3', 825, 235);
+  s += markGood('c1', 936, 256);
+  s += markGood('c3', 135, 415) + markBad('d4', 315, 415) + markGood('c8', 485, 415) + markGood('c7', 655, 415) + markBad('d2', 825, 415);
+  s += markGood('c9', 175, 486);
+  s += '</svg>';
+  return s;
+}
+
+function storeSVG() {
+  var s = '<svg viewBox="0 0 1000 560" xmlns="http://www.w3.org/2000/svg">';
+  s += glossyDefs();
+  s += roomShell('url(#g-wallStore)', 'url(#g-floorConcrete)', '#cdd3c0', '#e4e8dc', 215, '#9a958c');
+  s += '<path d="M0 366 H1000 M0 478 H1000" stroke="#f2b807" stroke-width="6" opacity="0.7"/>';
+  // exit door on right wall (decor)
+  s += poly('963,110 996,90 996,262 963,214', 'url(#g-woodDark)', SK) + '<circle cx="970" cy="168" r="2.5" fill="#8e98a6"/>';
+  s += poly('964,86 996,68 996,82 964,100', '#2fae6a', SK);
+  s += '<text x="980" y="89" text-anchor="middle" fill="#ffffff" font-family="IBM Plex Mono, monospace" font-size="7" font-weight="700" transform="rotate(-29 980 89)">EXIT</text>';
+
+  // WINDOW OPEN + RADIATOR ON (s10)
+  s += '<rect x="58" y="54" width="184" height="114" rx="6" fill="url(#g-cream)" stroke="' + INK + '" stroke-width="3.5"/>';
+  s += '<rect x="68" y="64" width="164" height="94" rx="3" fill="url(#g-outside)"/>';
+  s += '<rect x="96" y="120" width="6" height="38" fill="#8c5a2b"/><circle cx="99" cy="112" r="18" fill="url(#g-leafLight)" stroke="' + INK + '" stroke-width="2"/>';
+  s += '<ellipse cx="196" cy="88" rx="18" ry="7" fill="#ffffff"/>';
+  s += '<rect x="147" y="64" width="6" height="94" fill="#f4f7fa" stroke="' + INK + '" stroke-width="1.5"/>';
+  s += poly('153,64 206,52 206,172 153,158', '#cfe6f7', ' fill-opacity="0.8"' + SK);
+  s += '<line x1="162" y1="72" x2="186" y2="110" stroke="#ffffff" stroke-width="3" opacity="0.8" stroke-linecap="round"/>';
+  s += '<g stroke="#5aa7e0" stroke-width="2.8" fill="none" stroke-linecap="round" stroke-linejoin="round">' +
+    '<path d="M218 74 q10 8 2 16 q-8 8 2 16 l5 8"/><path d="M236 84 q10 8 2 16 q-8 8 2 16 l5 8"/>' +
+    '<path d="M221 110 l4 5 l5 -3 M239 120 l4 5 l5 -3"/></g>';
+  s += '<rect x="52" y="166" width="196" height="8" rx="3" fill="url(#g-cream)"' + SK + '/>';
+  s += '<rect x="80" y="182" width="140" height="28" rx="5" fill="url(#g-cream)" stroke="' + INK + '" stroke-width="3"/>';
+  for (var f = 0; f < 13; f++) s += '<line x1="' + (88 + f * 10) + '" y1="187" x2="' + (88 + f * 10) + '" y2="205" stroke="#b7c3cf" stroke-width="2.5"/>';
+  s += '<circle cx="226" cy="196" r="4" fill="#f2785c" stroke="' + INK + '" stroke-width="1.5"/>';
+  s += heatWaves(100, 180, 6, '#f2785c');
+
+  // STOCK CAGE, LOCKED, LIGHT ON (s7)
+  s += '<rect x="282" y="70" width="176" height="140" fill="#dde3d2"/>';
+  [112, 158, 204].forEach(function(sy, i) {
+    s += '<rect x="282" y="' + sy + '" width="176" height="5" fill="#a78352"/>';
+    [0, 1, 2].forEach(function(b) {
+      var bx = 290 + b * 56 + (i * 9) % 20, bh = 18 + ((b + i) % 3) * 6;
+      s += '<rect x="' + bx + '" y="' + (sy - bh) + '" width="40" height="' + bh + '" rx="2" fill="url(#g-woodDark)" stroke="' + INK + '" stroke-width="1.5"/>';
+    });
+  });
+  s += bulb(350, 70, 6, true);
+  s += box3d(276, 64, 188, 150, 10, 'rgba(210,218,226,0.15)', 'rgba(200,210,220,0.5)', 'rgba(170,185,200,0.45)');
+  for (var gx = 287; gx < 464; gx += 11) s += '<line x1="' + gx + '" y1="64" x2="' + gx + '" y2="214" stroke="#6f7f91" stroke-width="1.1" opacity="0.7"/>';
+  for (var gy = 75; gy < 214; gy += 11) s += '<line x1="276" y1="' + gy + '" x2="464" y2="' + gy + '" stroke="#6f7f91" stroke-width="1.1" opacity="0.7"/>';
+  s += '<rect x="400" y="72" width="58" height="138" fill="none" stroke="' + INK + '" stroke-width="2.5"/>';
+  s += '<path d="M397 144 a7 7 0 0 1 14 0 v6" stroke="' + INK + '" stroke-width="2.5" fill="none"/><rect x="393" y="150" width="22" height="16" rx="3" fill="url(#g-mustard)" stroke="' + INK + '" stroke-width="2"/><circle cx="404" cy="157" r="2" fill="' + INK + '"/>';
+  s += '<rect x="290" y="194" width="96" height="15" rx="3" fill="#ffffff"' + SK + '/>' + txt(338, 205, 'STOCK CAGE', 7.5, '#3a4658', 700);
+
+  // REFURB & REUSE SHELF (d3)
+  s += box3d(502, 64, 186, 150, 10, '#efe3c8', '#e4c99a', '#a78352');
+  s += '<rect x="502" y="64" width="8" height="150" fill="url(#g-woodDark)" stroke="' + INK + '" stroke-width="1.5"/><rect x="680" y="64" width="8" height="150" fill="url(#g-woodDark)" stroke="' + INK + '" stroke-width="1.5"/>';
+  [108, 156, 204].forEach(function(sy, i) {
+    s += '<rect x="502" y="' + sy + '" width="186" height="7" rx="2" fill="url(#g-wood)" stroke="' + INK + '" stroke-width="2"/>';
+    [516, 582].forEach(function(lx, j) {
+      if (i === 0 && j === 1) return;
+      for (var k = 0; k < 3; k++) {
+        s += '<rect x="' + lx + '" y="' + (sy - 7 - k * 7) + '" width="54" height="6" rx="2" fill="url(#g-charcoal)" stroke="' + INK + '" stroke-width="1.5"/>';
+      }
+      s += '<rect x="' + (lx + 40) + '" y="' + (sy - 12) + '" width="10" height="7" rx="1" fill="#e5f7f0" stroke="' + INK + '" stroke-width="1"/>';
+    });
+  });
+  s += '<rect x="580" y="70" width="96" height="30" rx="3" fill="#ffffff"' + SK + '/>' + txt(628, 83, 'REFURB &amp;', 8, '#1f6b4a', 700) + txt(628, 94, 'REUSE', 8, '#1f6b4a', 700);
+  s += '<rect x="604" y="126" width="72" height="24" rx="3" fill="#ffffff" stroke="' + INK + '" stroke-width="1.5"/>' + txt(640, 136, 'tested OK', 7, '#3a4658') + txt(640, 146, 'wiped OK', 7, '#3a4658');
+
+  // WORKING MONITORS MARKED FOR DISPOSAL (s3)
+  s += '<rect x="748" y="66" width="172" height="46" rx="4" fill="#ffffff"' + SK + '/>' + txt(834, 85, 'FOR DISPOSAL', 11, '#b8452c', 700) + txt(834, 102, 'all tested: working', 8, '#3a4658', 600);
+  s += box3d(722, 196, 222, 18, 10, 'url(#g-wood)', '#ecd2a6', '#a78352');
+  s += monitorShape(740, 128, false) + monitorShape(830, 128, false);
+  [778, 868].forEach(function(mx) {
+    s += '<g transform="rotate(-12 ' + mx + ' 152)"><rect x="' + (mx - 34) + '" y="145" width="68" height="13" fill="url(#g-mustard)" stroke="' + INK + '" stroke-width="1.5"/>' + txt(mx, 155, 'DISPOSE', 7.5, '#3a2a1a', 700) + '</g>';
+  });
+
+  // ROW 1 — SOLDERING STATION ON, BENCH EMPTY (s5)
+  s += desk3d(40, 290, 216);
+  s += box3d(58, 248, 66, 36, 8, 'url(#g-metal)', '#5c6c85', '#1c2636');
+  s += '<rect x="64" y="253" width="42" height="16" rx="2" fill="#0d1520"/>' + txt(85, 265, '350°C', 9, '#ff9a6b', 700);
+  s += '<circle cx="115" cy="261" r="3" fill="#f2785c"/>' + txt(91, 279, 'SOLDER', 6.5, '#c9d3dc', 700);
+  s += '<ellipse cx="158" cy="280" rx="15" ry="4" fill="url(#g-metal)" stroke="' + INK + '" stroke-width="1.5"/><path d="M152 278 l6 -14 l6 14 M154 272 h8 M155 268 h6" stroke="#8e98a6" stroke-width="2" fill="none"/>';
+  s += '<path d="M212 234 q24 -8 12 22 q-18 34 -88 14" stroke="' + INK + '" stroke-width="2" fill="none"/>';
+  s += '<line x1="158" y1="266" x2="180" y2="252" stroke="#b7c3cf" stroke-width="3.5" stroke-linecap="round"/>';
+  s += '<line x1="180" y1="252" x2="212" y2="234" stroke="#5aa7e0" stroke-width="8" stroke-linecap="round"/><line x1="180" y1="252" x2="212" y2="234" stroke="' + INK + '" stroke-width="1" opacity="0.4"/>';
+  s += '<circle cx="158" cy="266" r="5" fill="#ffb347" filter="url(#glow)"/>';
+  s += '<path d="M156 256 q-6 -8 0 -14 q6 -6 0 -14 M164 254 q-5 -7 0 -12" stroke="#aeb6c0" stroke-width="2" fill="none" opacity="0.85" stroke-linecap="round"/>';
+  s += shadow(150, 356, 20, 5) + '<rect x="147" y="320" width="6" height="32" fill="#8e98a6"' + SK + '/><ellipse cx="150" cy="352" rx="16" ry="4" fill="#3a4658"/><ellipse cx="150" cy="318" rx="20" ry="7" fill="url(#g-sky)"' + SK + '/>';
+
+  // TECHNICIAN USING THE TEST BENCH (d4)
+  s += person(412, 238, 'url(#g-skin2)', '#1b1b1b', 'url(#g-teal)');
+  s += desk3d(300, 290, 216);
+  s += '<rect x="322" y="250" width="58" height="30" rx="4" fill="url(#g-charcoal)"' + SK + '/><circle cx="351" cy="265" r="4" fill="#c9d3dc"/><rect x="316" y="278" width="70" height="5" rx="2" fill="#8e98a6"' + SK + '/>';
+  s += box3d(426, 266, 80, 16, 8, 'url(#g-metal)', '#5c6c85', '#1c2636');
+  [0, 1, 2, 3, 4, 5].forEach(function(i) { s += '<circle cx="' + (436 + i * 11) + '" cy="274" r="2" fill="' + (i === 4 ? '#3d4a5e' : '#7dffd9') + '"/>'; });
+  s += '<path d="M382 272 q24 12 52 2" stroke="#5aa7e0" stroke-width="2.5" fill="none"/>';
+
+  // CHARGING CART, ALL AT 100% (s4)
+  for (var dv = 0; dv < 6; dv++) {
+    var dx = 574 + dv * 25;
+    s += '<rect x="' + dx + '" y="226" width="20" height="40" rx="3" fill="url(#g-metal)" stroke="' + INK + '" stroke-width="2"/>';
+    s += '<rect x="' + (dx + 4) + '" y="232" width="11" height="6" rx="1" fill="none" stroke="#7dffd9" stroke-width="1.2"/><rect x="' + (dx + 5) + '" y="233" width="9" height="4" fill="#7dffd9"/>';
+  }
+  s += box3d(562, 262, 166, 80, 12, 'url(#g-charcoal)', '#3a4048', '#2c3138');
+  s += '<rect x="578" y="274" width="134" height="26" rx="3" fill="url(#g-teal)" stroke="' + INK + '" stroke-width="2"/>' + txt(645, 285, 'ALL 6 AT 100%', 8, '#07322a', 700) + txt(645, 295, 'still charging', 7, '#07322a', 600);
+  s += '<path d="M600 280 l-4 7 h4 l-3 7" stroke="#07322a" stroke-width="1.5" fill="none"/>';
+  for (var vs = 0; vs < 4; vs++) s += '<line x1="580" y1="' + (310 + vs * 6) + '" x2="710" y2="' + (310 + vs * 6) + '" stroke="#5b6572" stroke-width="2.5"/>';
+  s += '<circle cx="578" cy="345" r="6" fill="#2c3138" stroke="' + INK + '" stroke-width="1.5"/><circle cx="712" cy="345" r="6" fill="#2c3138" stroke="' + INK + '" stroke-width="1.5"/>';
+  s += '<path d="M728 300 q18 16 24 48" stroke="' + INK + '" stroke-width="2.5" fill="none"/><rect x="746" y="346" width="12" height="9" rx="2" fill="url(#g-cream)" stroke="' + INK + '" stroke-width="1.5"/>';
+
+  // AV KIT LEFT ON STANDBY (s9)
+  s += box3d(776, 292, 160, 50, 10, 'url(#g-cream)', '#f5f7fa', '#b7c3cf');
+  s += '<circle cx="790" cy="346" r="5" fill="#2c3138"/><circle cx="922" cy="346" r="5" fill="#2c3138"/>';
+  s += box3d(790, 262, 76, 28, 8, 'url(#g-cream)', '#f5f7fa', '#b7c3cf');
+  s += '<circle cx="806" cy="276" r="9" fill="url(#g-metal)" stroke="' + INK + '" stroke-width="2"/><circle cx="806" cy="276" r="3.5" fill="#8fb8d8"/>';
+  s += '<rect x="822" y="269" width="38" height="12" rx="2" fill="#0d1520"/>' + txt(841, 278, 'STANDBY', 6.5, '#f2785c', 700);
+  s += box3d(882, 238, 44, 52, 8, 'url(#g-metal)', '#5c6c85', '#1c2636');
+  s += '<circle cx="904" cy="253" r="7" fill="none" stroke="#8e98a6" stroke-width="2"/><circle cx="904" cy="274" r="10" fill="none" stroke="#8e98a6" stroke-width="2"/><circle cx="918" cy="243" r="2.2" fill="#f2785c"/>';
+  s += txt(836, 254, 'z z z', 9, '#8e98a6', 700);
+  s += '<rect x="790" y="350" width="120" height="10" rx="3" fill="url(#g-cream)"' + SK + '/>';
+  [0, 1, 2, 3].forEach(function(i) { s += '<rect x="' + (798 + i * 26) + '" y="346" width="10" height="7" rx="1" fill="#3a4658"/><circle cx="' + (813 + i * 26) + '" cy="355" r="1.8" fill="#f2785c"/>'; });
+
+  // ROW 2 — LAPTOPS IN GENERAL WASTE (s1)
+  s += poly('52,384 212,384 204,352 60,352', 'url(#g-charcoal)', SK);
+  s += '<rect x="68" y="370" width="54" height="7" rx="2" fill="url(#g-metal)" stroke="' + INK + '" stroke-width="1.5" transform="rotate(-18 95 373)"/>';
+  s += '<rect x="118" y="364" width="54" height="7" rx="2" fill="url(#g-metal)" stroke="' + INK + '" stroke-width="1.5" transform="rotate(14 145 367)"/>';
+  s += '<rect x="96" y="376" width="44" height="30" rx="3" fill="url(#g-metal)" stroke="' + INK + '" stroke-width="1.5" transform="rotate(-8 118 390)"/><rect x="101" y="380" width="34" height="21" fill="#2b3446" transform="rotate(-8 118 390)"/>';
+  s += box3d(48, 392, 166, 72, 10, 'url(#g-charcoal)', '#1f2328', '#2c3138');
+  s += '<rect x="80" y="404" width="102" height="16" rx="3" fill="#ffffff"' + SK + '/>' + txt(131, 415, 'GENERAL WASTE', 7.5, INK, 700);
+  s += '<circle cx="62" cy="466" r="5" fill="#2c3138"/><circle cx="200" cy="466" r="5" fill="#2c3138"/>';
+
+  // WEEE RECYCLING CAGE (d1)
+  s += '<rect x="268" y="374" width="50" height="7" rx="2" fill="url(#g-metal)" stroke="' + INK + '" stroke-width="1.5" transform="rotate(-10 293 377)"/>';
+  s += '<rect x="330" y="380" width="44" height="28" rx="3" fill="url(#g-metal)" stroke="' + INK + '" stroke-width="1.5"/><rect x="376" y="376" width="44" height="10" rx="2" fill="url(#g-cream)" stroke="' + INK + '" stroke-width="1.5" transform="rotate(8 398 381)"/>';
+  s += '<path d="M280 384 q20 -16 40 0 t40 -4" stroke="#3a4658" stroke-width="2.5" fill="none"/>';
+  s += box3d(254, 392, 176, 72, 10, 'rgba(210,218,226,0.2)', 'rgba(200,210,220,0.45)', 'rgba(170,185,200,0.4)');
+  for (var wx = 264; wx < 430; wx += 11) s += '<line x1="' + wx + '" y1="392" x2="' + wx + '" y2="464" stroke="#6f7f91" stroke-width="1.1" opacity="0.7"/>';
+  for (var wy = 402; wy < 464; wy += 11) s += '<line x1="254" y1="' + wy + '" x2="430" y2="' + wy + '" stroke="#6f7f91" stroke-width="1.1" opacity="0.7"/>';
+  s += '<rect x="282" y="418" width="120" height="18" rx="3" fill="#ffffff"' + SK + '/>' + txt(342, 430, 'WEEE RECYCLING', 7.5, '#1f6b4a', 700);
+
+  // BATTERIES IN GENERAL BIN (s2)
+  s += bin(474, 404, 'url(#g-charcoal)',
+    '<rect x="484" y="392" width="7" height="16" rx="2" fill="#f2b807" stroke="' + INK + '" stroke-width="1.3" transform="rotate(-15 487 400)"/>' +
+    '<rect x="494" y="390" width="7" height="16" rx="2" fill="#3a4658" stroke="' + INK + '" stroke-width="1.3" transform="rotate(10 497 398)"/>' +
+    '<rect x="504" y="388" width="14" height="20" rx="2" fill="#5b6572" stroke="' + INK + '" stroke-width="1.3"/>' + txt(511, 401, '+', 9, '#ffffff', 700));
+  s += txt(497, 446, 'GENERAL', 6.5, '#ffffff', 700);
+
+  // BATTERY RECYCLING TUBE (d2)
+  s += shadow(594, 468, 26, 5);
+  var cols = ['#f2b807', '#3a4658', '#f2785c', '#5aa7e0'];
+  for (var bt = 0; bt < 12; bt++) {
+    s += '<rect x="' + (578 + (bt % 4) * 9) + '" y="' + (452 - Math.floor(bt / 4) * 15) + '" width="7" height="14" rx="2" fill="' + cols[bt % 4] + '" stroke="' + INK + '" stroke-width="1"/>';
+  }
+  s += '<rect x="572" y="374" width="44" height="92" rx="10" fill="#dff1ff" fill-opacity="0.4" stroke="' + INK + '" stroke-width="2.5"/>';
+  s += '<rect x="568" y="368" width="52" height="10" rx="4" fill="url(#g-sky)"' + SK + '/>';
+  s += '<rect x="575" y="386" width="38" height="22" rx="2" fill="#ffffff" stroke="' + INK + '" stroke-width="1.5"/>' + txt(594, 395, 'BATTERY', 6, '#1f6b4a', 700) + txt(594, 404, 'RECYCLE', 6, '#1f6b4a', 700);
+
+  // TONER IN THE RUBBISH BOX (s6)
+  s += '<g transform="rotate(-10 700 386)"><rect x="672" y="378" width="62" height="14" rx="3" fill="url(#g-metal)" stroke="' + INK + '" stroke-width="1.5"/>' + txt(703, 388, 'TONER', 7, '#c9d3dc', 700) + '</g>';
+  s += '<g transform="rotate(8 752 384)"><rect x="722" y="377" width="62" height="14" rx="3" fill="url(#g-metal)" stroke="' + INK + '" stroke-width="1.5"/>' + txt(753, 387, 'TONER', 7, '#c9d3dc', 700) + '</g>';
+  s += box3d(662, 402, 128, 62, 10, 'url(#g-woodDark)', '#6b4f2a', '#a78352');
+  s += poly('662,402 640,388 650,376 668,392', '#dcc193', SK) + poly('790,402 812,388 806,376 786,392', '#dcc193', SK);
+  s += txt(726, 440, 'RUBBISH', 12, '#3a2a1a', 700);
+
+  // TONER RETURNS BOX (d5)
+  s += box3d(824, 402, 128, 62, 10, 'url(#g-woodDark)', '#e4c99a', '#a78352');
+  s += '<rect x="884" y="402" width="8" height="18" fill="#d9c89c"/>';
+  s += '<rect x="834" y="420" width="108" height="36" rx="3" fill="#ffffff" stroke="' + INK + '" stroke-width="2"/>' + txt(888, 434, 'TONER RETURNS', 7.5, INK, 700) + txt(888, 446, 'freepost recycling', 6.5, '#3a4658', 600);
+
+  // ROW 3 — GIANT BOX FOR ONE TINY PART (s8)
+  s += box3d(46, 494, 250, 66, 14, 'url(#g-woodDark)', '#6b4f2a', '#a78352');
+  var pn = [[70, 486], [92, 484], [118, 488], [140, 483], [168, 487], [196, 484], [222, 488], [248, 484], [270, 487], [104, 490], [184, 490], [232, 490], [310, 548], [322, 553], [306, 556]];
+  pn.forEach(function(p) { s += '<ellipse cx="' + p[0] + '" cy="' + p[1] + '" rx="5" ry="3" fill="#fdf8ee" stroke="' + INK + '" stroke-width="1"/>'; });
+  s += '<rect x="160" y="472" width="18" height="8" rx="1.5" fill="url(#g-metal)" stroke="' + INK + '" stroke-width="1.5"/>';
+  s += '<line x1="178" y1="476" x2="190" y2="470" stroke="' + INK + '" stroke-width="1"/><rect x="190" y="460" width="58" height="14" rx="2" fill="#ffffff" stroke="' + INK + '" stroke-width="1.5"/>' + txt(219, 470, '1 x SFP', 7.5, INK, 700);
+  s += txt(171, 530, 'FRAGILE', 12, '#b8452c', 700);
+  // hand truck + ladder (decor)
+  s += box3d(446, 512, 36, 36, 8, 'url(#g-woodDark)', '#e4c99a', '#a78352');
+  s += '<path d="M436 472 V550 H486" stroke="#3a4658" stroke-width="5" fill="none" stroke-linecap="round"/><circle cx="442" cy="552" r="7" fill="#2c3138" stroke="' + INK + '" stroke-width="1.5"/>';
+  s += '<g stroke="#f2b807" stroke-width="5" stroke-linecap="round"><line x1="724" y1="476" x2="708" y2="556"/><line x1="740" y1="476" x2="756" y2="556"/></g>';
+  s += '<g stroke="#c78900" stroke-width="3"><line x1="720" y1="496" x2="744" y2="496"/><line x1="716" y1="516" x2="748" y2="516"/><line x1="712" y1="536" x2="752" y2="536"/></g>';
+
+  // HOTSPOTS
+  s += hot('s10', 'issue', 50, 44, 204, 174);
+  s += hot('s7', 'issue', 270, 44, 200, 174);
+  s += hot('d3', 'decoy', 496, 44, 200, 174);
+  s += hot('s3', 'issue', 716, 44, 234, 174);
+  s += hot('s5', 'issue', 36, 220, 232, 142);
+  s += hot('d4', 'decoy', 292, 220, 232, 142);
+  s += hot('s4', 'issue', 548, 220, 194, 142);
+  s += hot('s9', 'issue', 764, 220, 190, 142);
+  s += hot('s1', 'issue', 36, 364, 190, 108);
+  s += hot('d1', 'decoy', 246, 364, 194, 108);
+  s += hot('s2', 'issue', 462, 364, 80, 108);
+  s += hot('d2', 'decoy', 560, 364, 70, 108);
+  s += hot('s6', 'issue', 636, 364, 170, 108);
+  s += hot('d5', 'decoy', 814, 364, 146, 108);
+  s += hot('s8', 'issue', 36, 474, 300, 86);
+
+  s += markGood('s10', 150, 110) + markGood('s7', 350, 150) + markBad('d3', 560, 150) + markGood('s3', 834, 170);
+  s += markGood('s5', 170, 250) + markBad('d4', 466, 250) + markGood('s4', 645, 312) + markGood('s9', 856, 312);
+  s += markGood('s1', 131, 440) + markBad('d1', 342, 450) + markGood('s2', 499, 430) + markBad('d2', 594, 430);
+  s += markGood('s6', 726, 420) + markBad('d5', 888, 410) + markGood('s8', 120, 520);
+  s += '</svg>';
+  return s;
+}
+
+// ---------- Game state ----------
+var ORDER = ["office", "comms", "store"];
+var SCENES = { office: officeSVG, comms: commsSVG, store: storeSVG };
+var TOTAL_TIME = 720;
+var MAX_MISSES = 5;
+var game = null;
+var timerInterval = null;
+
+var svgHost = document.getElementById("scene-svg");
+var toast = document.getElementById("toast");
+var banner = document.getElementById("banner");
+var stepsEl = document.getElementById("room-steps");
+var foundGrid = document.getElementById("found-grid");
+var decoyGridWrap = document.getElementById("decoy-grid");
+var decoyGridInner = document.getElementById("decoy-grid-inner");
+var missDisplay = document.getElementById("miss-display");
+var scoreDisplay = document.getElementById("score-display");
+var timerDisplay = document.getElementById("timer-display");
+var hintBtn = document.getElementById("hint-btn");
+var progressFill = document.getElementById("progress-fill");
+var progressPct = document.getElementById("progress-pct");
+var progressLabel = document.getElementById("progress-label");
+var progressNote = document.getElementById("progress-note");
+
+function perRoom(v) {
+  var o = {};
+  ORDER.forEach(function(r) { o[r] = (typeof v === "function") ? v() : v; });
+  return o;
+}
+function newGame() {
+  clearInterval(timerInterval);
+  game = {
+    started: false, over: false, busy: false, timeLeft: TOTAL_TIME, score: 0, current: "office", totalMisses: 0,
+    unlocked: { office: true, comms: false, store: false },
+    completed: perRoom(false), revealed: perRoom(false),
+    found: perRoom(function() { return new Set(); }), decoys: perRoom(function() { return new Set(); }),
+    misses: perRoom(0), hints: perRoom(3)
+  };
+}
+function fmtTime(t) {
+  return Math.floor(t / 60) + ":" + String(t % 60).padStart(2, "0");
+}
+function roomPct(r) {
+  return Math.round(game.found[r].size / ROOMS[r].issues.length * 100);
+}
+
+// ---------- Rendering ----------
+function renderSteps() {
+  stepsEl.innerHTML = ORDER.map(function(r, i) {
+    var state = game.completed[r] ? "done" : (game.unlocked[r] ? "open" : "locked");
+    var badge = state === "done" ? "\u2713" : (state === "locked" ? "\uD83D\uDD12" : "");
+    return '<button class="tab ' + state + (r === game.current ? " active" : "") + '" onclick="goRoom(\'' + r + '\')">' +
+      (i + 1) + ". " + ROOMS[r].label + ' <span class="done-badge">' + badge + "</span></button>";
+  }).join("");
+}
+function renderScene() {
+  var r = game.current;
+  var raw = SCENES[r]();
+  raw = applyToyShading(raw).replace("</svg>", sceneOverlay(r === "comms") + "</svg>");
+  svgHost.innerHTML = raw;
+  svgHost.querySelectorAll(".hotspot").forEach(function(spot) {
+    spot.addEventListener("click", function() {
+      handleClick(spot.getAttribute("data-id"), spot.getAttribute("data-kind"));
+    });
+  });
+  applyMarks();
+  renderFoundGrid();
+  if (game.revealed[r]) renderDecoyGrid(); else decoyGridWrap.classList.remove("show");
+  updateStatus();
+  updateProgress();
+}
+function applyMarks() {
+  var r = game.current;
+  ROOMS[r].issues.forEach(function(i) {
+    var m = document.getElementById("mark-" + i.id);
+    if (m) m.classList.toggle("show", game.found[r].has(i.id));
+  });
+  ROOMS[r].decoys.forEach(function(d) {
+    var m = document.getElementById("mark-" + d.id);
+    if (m) m.classList.toggle("show", game.decoys[r].has(d.id));
+  });
+}
+function renderFoundGrid() {
+  var r = game.current;
+  foundGrid.innerHTML = ROOMS[r].issues.map(function(issue) {
+    var f = game.found[r].has(issue.id);
+    return '<div class="found-card ' + (f ? "revealed" : "") + '">' +
+      '<div class="fc-title"><span class="fc-check">' + (f ? "\u2713" : "\u2014") + "</span> " + (f ? issue.title : "Not found yet") + "</div>" +
+      '<div class="fc-desc">' + (f ? issue.desc : "Keep looking.") + "</div></div>";
+  }).join("");
+}
+function renderDecoyGrid() {
+  var r = game.current;
+  decoyGridInner.innerHTML = ROOMS[r].decoys.map(function(d) {
+    return '<div class="decoy-card"><div class="fc-title">' + d.title + '</div><div class="fc-desc">' + d.desc + "</div></div>";
+  }).join("");
+  decoyGridWrap.classList.add("show");
+}
+function updateStatus() {
+  var r = game.current;
+  scoreDisplay.textContent = game.score;
+  document.getElementById("team-display").textContent = playerName || "\u2014";
+  missDisplay.textContent = game.misses[r] + " / " + MAX_MISSES;
+  hintBtn.textContent = "Hint (" + game.hints[r] + ")";
+  hintBtn.disabled = game.hints[r] <= 0 || game.over || !game.started || game.completed[r];
+}
+function updateTimerDisplay() {
+  timerDisplay.textContent = fmtTime(game.timeLeft);
+  timerDisplay.classList.toggle("warn", game.timeLeft <= 60 && game.timeLeft > 0);
+}
+function updateProgress() {
+  var r = game.current, pct = roomPct(r), idx = ORDER.indexOf(r), next = ORDER[idx + 1];
+  progressFill.style.width = pct + "%";
+  progressFill.style.backgroundColor = pct < 40 ? "#f2785c" : (pct < 80 ? "#f2b807" : "#3fbfa0");
+  progressPct.textContent = pct + "%";
+  progressLabel.textContent = ROOMS[r].label + " sustainability";
+  if (game.completed[r]) {
+    progressNote.textContent = next ? "Door unlocked \u2014 on to the " + ROOMS[next].label.toLowerCase() : "Final room restored";
+  } else {
+    progressNote.textContent = "Restore this room to 100% to unlock the " + (next ? "door to the " + ROOMS[next].label.toLowerCase() : "exit");
+  }
+  var smog = document.getElementById("smog");
+  if (smog) smog.style.opacity = ((100 - pct) / 100 * 0.34).toFixed(3);
+}
+function showToast(msg, cls) {
+  toast.textContent = msg;
+  toast.className = "toast show " + cls;
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(function() { toast.classList.remove("show"); }, 2200);
+}
+function showBanner(icon, title, body, buttons) {
+  banner.innerHTML = '<div class="banner-card"><div class="banner-icon">' + icon + "</div><h2>" + title + "</h2><p>" + body + '</p><div class="banner-actions">' + buttons + "</div></div>";
+  banner.classList.add("show");
+  banner.classList.remove("thermo-open", "end-screen");
+}
+function hideBanner() {
+  banner.classList.remove("show", "end-screen");
+}
+var BOARD_HEAD = '<thead><tr><th>#</th><th>Team</th><th>Score</th><th>Rooms</th><th>Time</th><th>False alarms</th></tr></thead>';
+function showEndScreen(icon, title, body, buttons) {
+  banner.innerHTML = '<div class="banner-card banner-wide"><div class="banner-icon">' + icon + "</div><h2>" + title + "</h2><p>" + body + "</p>" +
+    '<div class="end-board"><div class="end-board-head">Scoreboard</div><div class="end-board-scroll" id="end-board-scroll"><table class="board">' + BOARD_HEAD +
+    '<tbody id="end-board-body"></tbody></table></div></div>' +
+    '<div class="banner-actions">' + buttons + "</div></div>";
+  banner.classList.remove("thermo-open");
+  banner.classList.add("show", "end-screen");
+  renderScoreboard();
+}
+function showStartBanner() {
+  showBanner("\uD83D\uDEAA", "Three rooms. One clock.",
+    "Each room is wasting energy and resources. Find the real problems to push its sustainability meter to 100% and unlock the next door. You have " + (TOTAL_TIME / 60) + " minutes to escape.",
+    '<div class="name-row"><input id="player-name" type="text" maxlength="24" placeholder="Team or player name" autocomplete="off" onkeydown="if(event.key===\'Enter\')startGame()"></div>' +
+    '<button class="action primary" onclick="startGame()">Start the clock</button>');
+  var inp = document.getElementById("player-name");
+  inp.value = playerName;
+  setTimeout(function() { try { inp.focus(); } catch (e) {} }, 50);
+}
+
+// ---------- Supabase shared scoreboard (external hosting) ----------
+var remoteOk = false;
+function remoteEnabled() { return !!(SUPABASE_URL && SUPABASE_KEY); }
+function remoteBase() { return SUPABASE_URL.replace(/\/+$/, "") + "/rest/v1/scores"; }
+function remoteHeaders(extra) {
+  var h = { apikey: SUPABASE_KEY, "Content-Type": "application/json" };
+  if (extra) for (var k in extra) h[k] = extra[k];
+  return h;
+}
+function fetchRemote() {
+  return fetch(remoteBase() + "?select=id,name,score,rooms,escaped,time_used,false_alarms&order=score.desc,time_used.asc&limit=200", { headers: remoteHeaders() })
+    .then(function(r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+    .then(function(rows) {
+      remoteOk = true;
+      var pending = sharedRows.filter(function(x) { return String(x._id).indexOf("pending-") === 0; });
+      sharedRows = rows.map(function(x) {
+        return { _id: "r" + x.id, name: String(x.name || "Team").slice(0, 24), score: Number(x.score) || 0, rooms: Number(x.rooms) || 0,
+          escaped: !!x.escaped, timeUsed: Number(x.time_used) || 0, falseAlarms: Number(x.false_alarms) || 0 };
+      }).concat(pending);
+      renderScoreboard();
+    })
+    .catch(function() { remoteOk = false; renderScoreboard(); });
+}
+function submitRemote(entry) {
+  var tmp = "pending-" + Date.now();
+  var shown = Object.assign({ _id: tmp }, entry);
+  lastEntryId = tmp;
+  sharedRows = sharedRows.concat([shown]);
+  renderScoreboard();
+  fetch(remoteBase(), {
+    method: "POST",
+    headers: remoteHeaders({ Prefer: "return=representation" }),
+    body: JSON.stringify({ name: entry.name, score: entry.score, rooms: entry.rooms, escaped: entry.escaped,
+      time_used: entry.timeUsed, false_alarms: entry.falseAlarms })
+  }).then(function(r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+    .then(function(rows) {
+      sharedRows = sharedRows.filter(function(x) { return x._id !== tmp; });
+      if (rows && rows[0]) { lastEntryId = "r" + rows[0].id; sharedRows.push(Object.assign({}, shown, { _id: lastEntryId })); }
+      renderScoreboard();
+      return fetchRemote();
+    })
+    .catch(function() {
+      sharedRows = sharedRows.filter(function(x) { return x._id !== tmp; });
+      localRows.push(shown);
+      renderScoreboard();
+      showToast("Couldn't reach the shared scoreboard \u2014 score kept on this device", "bad");
+    });
+}
+
+// ---------- Player name + scoreboard ----------
+var playerName = "";
+var scoreDb = null, sharedRows = [], localRows = (SUPABASE_URL && SUPABASE_KEY) ? [] : loadLocalRows(), lastEntryId = null, boardReadOnly = false, isBoardOwner = false, clearArmed = false;
+var boardBody = document.getElementById("board-body");
+var boardNote = document.getElementById("board-note");
+var clearBtn = document.getElementById("board-clear");
+
+var LOCAL_KEY = "sustainability-escape-scores";
+function loadLocalRows() {
+  try { var v = JSON.parse(localStorage.getItem(LOCAL_KEY) || "[]"); return Array.isArray(v) ? v.slice(0, 200) : []; }
+  catch (e) { return []; }
+}
+function saveLocalRows() {
+  if (remoteEnabled()) return;
+  try { localStorage.setItem(LOCAL_KEY, JSON.stringify(localRows.slice(-200))); } catch (e) {}
+}
+function boardSort(a, b) {
+  return (b.score - a.score) || (a.timeUsed - b.timeUsed);
+}
+var BOARD_SHOW = 50;
+function allBoardRows() {
+  return sharedRows.concat(localRows).sort(boardSort);
+}
+function boardRows() {
+  return allBoardRows().slice(0, BOARD_SHOW);
+}
+function fillBoard(tbody) {
+  var all = allBoardRows(), rows = all.slice(0, BOARD_SHOW);
+  tbody.textContent = "";
+  if (!rows.length) {
+    var etr = document.createElement("tr"), etd = document.createElement("td");
+    etd.colSpan = 6; etd.className = "board-empty"; etd.textContent = "No scores yet \u2014 be the first team on the board.";
+    etr.appendChild(etd); tbody.appendChild(etr);
+    return;
+  }
+  function addRow(r, rank) {
+    var tr = document.createElement("tr");
+    if (r._id === lastEntryId) tr.className = "board-me";
+    [String(rank), r.name, String(r.score), r.rooms + "/3" + (r.escaped ? " \u2713" : ""), fmtTime(r.timeUsed), String(r.falseAlarms)].forEach(function(v, col) {
+      var td = document.createElement("td");
+      td.textContent = v;
+      if (col === 1) td.className = "board-name";
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  }
+  rows.forEach(function(r, i) { addRow(r, i + 1); });
+  var mine = all.findIndex(function(r) { return r._id === lastEntryId; });
+  if (mine >= BOARD_SHOW) {
+    var gtr = document.createElement("tr"), gtd = document.createElement("td");
+    gtr.className = "board-gap"; gtd.colSpan = 6; gtd.textContent = "\u22EE";
+    gtr.appendChild(gtd); tbody.appendChild(gtr);
+    addRow(all[mine], mine + 1);
+  }
+}
+function scrollMineIntoView(scrollBox) {
+  var me = scrollBox && scrollBox.querySelector("tr.board-me");
+  if (!me) return;
+  var head = scrollBox.querySelector("thead");
+  var top = me.offsetTop - (head ? head.offsetHeight : 0) - scrollBox.clientHeight / 2 + me.offsetHeight;
+  scrollBox.scrollTop = Math.max(0, top);
+}
+function renderScoreboard() {
+  fillBoard(boardBody);
+  var endBody = document.getElementById("end-board-body");
+  if (endBody) {
+    var box = document.getElementById("end-board-scroll"), prevTop = box.scrollTop, hadMine = !!endBody.querySelector("tr.board-me");
+    fillBoard(endBody);
+    if (!hadMine || prevTop === 0) scrollMineIntoView(box); else box.scrollTop = prevTop;
+  }
+  if (remoteEnabled()) boardNote.textContent = remoteOk ? "Live board shared across all devices (refreshes every 10 seconds)." : "Can't reach the shared scoreboard right now \u2014 showing this device's scores.";
+  else if (!scoreDb) boardNote.textContent = "Scores are kept on this device only.";
+  else if (boardReadOnly) boardNote.textContent = "Your access is view-only, so your scores are kept on this device.";
+  else boardNote.textContent = "Live board, shared with everyone playing this page.";
+  clearBtn.style.display = !remoteEnabled() && ((isBoardOwner && scoreDb) || !scoreDb) && boardRows().length ? "" : "none";
+}
+function initScoreboard() {
+  renderScoreboard();
+  if (remoteEnabled()) {
+    fetchRemote();
+    setInterval(function() { if (!document.hidden) fetchRemote(); }, 10000);
+    document.addEventListener("visibilitychange", function() { if (!document.hidden) fetchRemote(); });
+    return;
+  }
+  if (!window.claude || !window.claude.use) return;
+  window.claude.use("db").then(function(db) {
+    if (!db) return;
+    scoreDb = db;
+    db.collection("scores").orderBy("score", "desc").limit(200).onSnapshot(function(snap) {
+      sharedRows = snap.docs.map(function(d) {
+        var x = d.data() || {};
+        return { _id: d.id, name: String(x.name || "Team").slice(0, 24), score: Number(x.score) || 0, rooms: Number(x.rooms) || 0,
+          escaped: !!x.escaped, timeUsed: Number(x.timeUsed) || 0, falseAlarms: Number(x.falseAlarms) || 0 };
+      });
+      renderScoreboard();
+    }, function() {
+      scoreDb = null;
+      renderScoreboard();
+    });
+    renderScoreboard();
+  }).catch(function() {});
+  window.claude.use("user").then(function(u) {
+    if (!u) return;
+    u.isOwner().then(function(o) { isBoardOwner = !!o; renderScoreboard(); }).catch(function() {});
+  }).catch(function() {});
+}
+function submitScore(escaped) {
+  var entry = {
+    name: playerName, score: game.score,
+    rooms: ORDER.filter(function(r) { return game.completed[r] && !game.revealed[r]; }).length,
+    escaped: escaped, timeUsed: TOTAL_TIME - game.timeLeft, falseAlarms: game.totalMisses, at: Date.now()
+  };
+  if (remoteEnabled()) {
+    submitRemote(entry);
+  } else if (scoreDb && !boardReadOnly) {
+    var ref = scoreDb.collection("scores").doc();
+    lastEntryId = ref.id;
+    var shown = Object.assign({ _id: ref.id }, entry);
+    sharedRows = sharedRows.concat([shown]);
+    renderScoreboard();
+    ref.set(entry).catch(function(e) {
+      sharedRows = sharedRows.filter(function(r) { return r._id !== ref.id; });
+      if (e && e.code === "invalid_argument") boardReadOnly = true;
+      localRows.push(shown);
+      saveLocalRows();
+      renderScoreboard();
+      showToast("Couldn't save to the shared board \u2014 score kept on this device", "bad");
+    });
+  } else {
+    lastEntryId = "local-" + Date.now();
+    localRows.push(Object.assign({ _id: lastEntryId }, entry));
+    saveLocalRows();
+    renderScoreboard();
+  }
+  var all = allBoardRows();
+  var rank = all.findIndex(function(r) { return r._id === lastEntryId; }) + 1;
+  return rank > 0 ? "You're #" + rank + " of " + all.length + (all.length === 1 ? " team" : " teams") + " on the scoreboard." : "";
+}
+function clearScoreboard() {
+  if (scoreDb && !isBoardOwner) return;
+  if (!clearArmed) {
+    clearArmed = true;
+    clearBtn.textContent = "Click again to confirm";
+    setTimeout(function() { clearArmed = false; clearBtn.textContent = "Clear scoreboard"; }, 4000);
+    return;
+  }
+  clearArmed = false;
+  if (!scoreDb) {
+    localRows = []; lastEntryId = null; saveLocalRows();
+    clearBtn.textContent = "Clear scoreboard";
+    showToast("Scoreboard cleared", "good");
+    renderScoreboard();
+    return;
+  }
+  clearBtn.textContent = "Clearing\u2026";
+  clearBtn.disabled = true;
+  scoreDb.collection("scores").limit(1000).get().then(function(snap) {
+    return snap.docs.reduce(function(p, d) {
+      return p.then(function() { return scoreDb.collection("scores").doc(d.id).delete(); });
+    }, Promise.resolve());
+  }).then(function() {
+    localRows = []; lastEntryId = null; saveLocalRows();
+    showToast("Scoreboard cleared", "good");
+  }).catch(function() {
+    showToast("Couldn't clear the scoreboard \u2014 try again", "bad");
+  }).then(function() {
+    clearBtn.textContent = "Clear scoreboard";
+    clearBtn.disabled = false;
+    renderScoreboard();
+  });
+}
+
+// ---------- Zoom + pan (touch and desktop) ----------
+var zoom = 1, ZMIN = 1, ZMAX = 3.5, userZoomed = false, pinch = null, panHintShown = false;
+var scroller = document.getElementById("scene-scroll");
+var panHint = document.getElementById("pan-hint");
+function fitHeightZoom() {
+  var w = scroller.clientWidth, h = scroller.clientHeight;
+  if (!w || !h) return 1;
+  return Math.max(ZMIN, Math.min(ZMAX, h / (w * 0.56)));
+}
+function updateZoomButtons() {
+  document.getElementById("zoom-in").disabled = zoom >= ZMAX - 0.01;
+  document.getElementById("zoom-out").disabled = zoom <= ZMIN + 0.01;
+  document.getElementById("zoom-fit").disabled = zoom <= ZMIN + 0.01;
+}
+function applyZoom(z, fx, fy) {
+  z = Math.max(ZMIN, Math.min(ZMAX, z));
+  var w = scroller.clientWidth, h = scroller.clientHeight;
+  if (fx == null) { fx = w / 2; fy = h / 2; }
+  var cx = scroller.scrollLeft + fx, cy = scroller.scrollTop + fy, r = z / zoom;
+  zoom = z;
+  svgHost.style.width = (z * 100) + "%";
+  scroller.scrollLeft = cx * r - fx;
+  scroller.scrollTop = cy * r - fy;
+  updateZoomButtons();
+}
+function zoomBy(f) { userZoomed = true; applyZoom(zoom * f); }
+function zoomFit() { userZoomed = true; applyZoom(1); }
+function resetView() {
+  if (!userZoomed) applyZoom(fitHeightZoom()); else applyZoom(zoom);
+  scroller.scrollLeft = 0;
+  scroller.scrollTop = 0;
+}
+var panHintAt = 0;
+function maybeShowPanHint() {
+  setTimeout(function() {
+    if (panHintShown || scroller.scrollWidth <= scroller.clientWidth + 20) return;
+    panHintShown = true;
+    panHintAt = Date.now();
+    panHint.classList.add("show");
+    setTimeout(function() { panHint.classList.remove("show"); }, 4500);
+  }, 400);
+}
+function touchDist(a, b) { return Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY); }
+scroller.addEventListener("touchstart", function(e) {
+  if (e.touches.length !== 2) return;
+  var rc = scroller.getBoundingClientRect(), a = e.touches[0], b = e.touches[1];
+  var fx = (a.clientX + b.clientX) / 2 - rc.left, fy = (a.clientY + b.clientY) / 2 - rc.top;
+  pinch = { d0: touchDist(a, b), z0: zoom, fx: fx, fy: fy, s: 1,
+    ox: scroller.scrollLeft + fx - svgHost.offsetLeft, oy: scroller.scrollTop + fy - svgHost.offsetTop };
+  svgHost.style.transformOrigin = pinch.ox + "px " + pinch.oy + "px";
+}, { passive: true });
+scroller.addEventListener("touchmove", function(e) {
+  if (!pinch || e.touches.length !== 2) return;
+  e.preventDefault();
+  var z = Math.max(ZMIN, Math.min(ZMAX, pinch.z0 * touchDist(e.touches[0], e.touches[1]) / pinch.d0));
+  pinch.s = z / pinch.z0;
+  svgHost.style.transform = "scale(" + pinch.s + ")";
+}, { passive: false });
+function endPinch() {
+  if (!pinch) return;
+  var p = pinch;
+  pinch = null;
+  svgHost.style.transform = "";
+  userZoomed = true;
+  applyZoom(p.z0 * p.s, p.fx, p.fy);
+}
+scroller.addEventListener("touchend", function(e) { if (e.touches.length < 2) endPinch(); });
+scroller.addEventListener("touchcancel", endPinch);
+scroller.addEventListener("gesturestart", function(e) { e.preventDefault(); });
+scroller.addEventListener("wheel", function(e) {
+  if (!e.ctrlKey) return;
+  e.preventDefault();
+  var rc = scroller.getBoundingClientRect();
+  userZoomed = true;
+  applyZoom(zoom * Math.exp(-e.deltaY * 0.01), e.clientX - rc.left, e.clientY - rc.top);
+}, { passive: false });
+scroller.addEventListener("scroll", function() { if (Date.now() - panHintAt > 600) panHint.classList.remove("show"); }, { passive: true });
+var resizeTimer = null;
+window.addEventListener("resize", function() {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(function() { applyZoom(userZoomed ? zoom : fitHeightZoom()); }, 150);
+});
+function scrollSpotIntoView(spot) {
+  if (zoom <= 1.01 || !spot) return;
+  var sr = spot.getBoundingClientRect(), fr = scroller.getBoundingClientRect();
+  var dx = (sr.left + sr.width / 2) - (fr.left + fr.width / 2), dy = (sr.top + sr.height / 2) - (fr.top + fr.height / 2);
+  try { scroller.scrollBy({ left: dx, top: dy, behavior: "smooth" }); } catch (err) { scroller.scrollLeft += dx; scroller.scrollTop += dy; }
+}
+
+// ---------- Game flow ----------
+function startGame() {
+  if (game.started) return;
+  var inp = document.getElementById("player-name");
+  var name = inp ? inp.value.replace(/\s+/g, " ").trim().slice(0, 24) : playerName;
+  if (!name) {
+    if (inp) { inp.classList.add("invalid"); inp.focus(); }
+    showToast("Enter a team or player name first", "bad");
+    return;
+  }
+  playerName = name;
+  game.started = true;
+  hideBanner();
+  maybeShowPanHint();
+  updateStatus();
+  timerInterval = setInterval(function() {
+    game.timeLeft--;
+    updateTimerDisplay();
+    if (game.timeLeft <= 0) {
+      game.timeLeft = 0;
+      updateTimerDisplay();
+      timeUp();
+    }
+  }, 1000);
+}
+function goRoom(r) {
+  if (!game.unlocked[r]) {
+    showToast("Locked \u2014 restore the previous room to 100% first", "bad");
+    return;
+  }
+  game.current = r;
+  hideBanner();
+  renderSteps();
+  renderScene();
+  resetView();
+}
+var THERMO = { comms: { id: "c6", options: [15, 20, 24], correct: 20 } };
+var thermoIdx = 0;
+function afterChange(r) {
+  applyMarks();
+  renderFoundGrid();
+  updateStatus();
+  updateProgress();
+  if (game.misses[r] >= MAX_MISSES) { bustRoom(r); return; }
+  if (roomPct(r) === 100) completeRoom(r, false);
+}
+function showThermostat() {
+  thermoIdx = 0;
+  banner.innerHTML = '<div class="banner-card"><h2>Comms room thermostat</h2>' +
+    '<p>Pick the right setting with the arrows, then press Enter.</p>' +
+    '<div class="thermo-device"><div class="thermo-screen" id="thermo-val"></div>' +
+    '<div class="thermo-buttons"><button class="thermo-btn" id="thermo-up" onclick="thermoStep(1)" aria-label="Warmer">\u25B2</button>' +
+    '<button class="thermo-btn" id="thermo-down" onclick="thermoStep(-1)" aria-label="Cooler">\u25BC</button></div></div>' +
+    '<div class="thermo-dots" id="thermo-dots"></div>' +
+    '<div class="banner-actions"><button class="action primary" onclick="thermoEnter()">Enter</button><button class="action" onclick="closeThermostat()">Cancel</button></div></div>';
+  banner.classList.add("show", "thermo-open");
+  renderThermostat();
+}
+function renderThermostat() {
+  var t = THERMO[game.current];
+  document.getElementById("thermo-val").textContent = t.options[thermoIdx] + "\u00B0C";
+  document.getElementById("thermo-up").disabled = thermoIdx >= t.options.length - 1;
+  document.getElementById("thermo-down").disabled = thermoIdx <= 0;
+  document.getElementById("thermo-dots").innerHTML = t.options.map(function(o, i) { return '<span class="' + (i === thermoIdx ? "on" : "") + '"></span>'; }).join("");
+}
+function thermoStep(dir) {
+  var t = THERMO[game.current];
+  thermoIdx = Math.max(0, Math.min(t.options.length - 1, thermoIdx + dir));
+  renderThermostat();
+}
+function closeThermostat() {
+  banner.classList.remove("show", "thermo-open");
+}
+function thermoEnter() {
+  var r = game.current, t = THERMO[r], val = t.options[thermoIdx];
+  closeThermostat();
+  if (game.over || game.busy || game.completed[r]) return;
+  if (val === t.correct) {
+    game.found[r].add(t.id);
+    game.score += 10;
+    renderScene();
+    showToast("Fixed \u2014 thermostat set to " + val + "\u00B0C (+10%)", "good");
+    afterChange(r);
+  } else {
+    game.score = Math.max(0, game.score - 5);
+    game.misses[r]++;
+    game.totalMisses++;
+    showToast(val < t.correct ? "False alarm \u2014 " + val + "\u00B0C still overcools the room" : "False alarm \u2014 " + val + "\u00B0C is above the " + t.correct + "\u00B0C target for this room", "bad");
+    afterChange(r);
+  }
+}
+document.addEventListener("keydown", function(e) {
+  if (!banner.classList.contains("thermo-open")) return;
+  if (e.key === "ArrowUp") { thermoStep(1); e.preventDefault(); }
+  else if (e.key === "ArrowDown") { thermoStep(-1); e.preventDefault(); }
+  else if (e.key === "Enter") { thermoEnter(); e.preventDefault(); }
+  else if (e.key === "Escape") { closeThermostat(); }
+});
+
+function handleClick(id, kind) {
+  var r = game.current;
+  if (game.over || !game.started || game.busy || game.completed[r]) return;
+  if (kind === "issue" && THERMO[r] && THERMO[r].id === id && !game.found[r].has(id)) { showThermostat(); return; }
+  if (kind === "issue") {
+    if (game.found[r].has(id)) return;
+    game.found[r].add(id);
+    game.score += 10;
+    var issue = ROOMS[r].issues.find(function(i) { return i.id === id; });
+    showToast("Fixed \u2014 " + issue.title + " (+10%)", "good");
+  } else {
+    if (game.decoys[r].has(id)) return;
+    game.decoys[r].add(id);
+    game.score = Math.max(0, game.score - 5);
+    game.misses[r]++;
+    game.totalMisses++;
+    var decoy = ROOMS[r].decoys.find(function(d) { return d.id === id; });
+    showToast("False alarm \u2014 " + decoy.title, "bad");
+  }
+  applyMarks();
+  renderFoundGrid();
+  updateStatus();
+  updateProgress();
+  if (game.misses[r] >= MAX_MISSES) { bustRoom(r); return; }
+  if (roomPct(r) === 100) completeRoom(r, false);
+}
+function bustRoom(r) {
+  game.busy = true;
+  setTimeout(function() {
+    game.found[r] = new Set();
+    game.decoys[r] = new Set();
+    game.misses[r] = 0;
+    game.busy = false;
+    renderScene();
+    showToast("Five false alarms \u2014 the room resets to 0%", "bad");
+  }, 900);
+}
+function completeRoom(r, viaReveal) {
+  game.completed[r] = true;
+  var next = ORDER[ORDER.indexOf(r) + 1];
+  if (next) game.unlocked[next] = true;
+  renderSteps();
+  updateProgress();
+  updateStatus();
+  if (!next) { winGame(); return; }
+  var nextName = ROOMS[next].label.toLowerCase();
+  showBanner("\uD83D\uDD13", viaReveal ? "Answers revealed" : "Room restored!",
+    viaReveal ? "No points for this room, but the door to the " + nextName + " is open." : ROOMS[r].label + " is back to 100%. The door to the " + nextName + " is unlocked.",
+    '<button class="action primary" onclick="goRoom(\'' + next + '\')">Enter the ' + nextName + '</button><button class="action" onclick="hideBanner()">Review this room</button>');
+}
+function unlockAll() {
+  ORDER.forEach(function(r) { game.unlocked[r] = true; });
+  renderSteps();
+}
+function winGame() {
+  game.over = true;
+  clearInterval(timerInterval);
+  var bonus = Math.floor(game.timeLeft / 5);
+  game.score += bonus;
+  updateStatus();
+  unlockAll();
+  var placed = submitScore(true);
+  showEndScreen("\uD83C\uDFC6", "You escaped!",
+    "All three rooms restored in " + fmtTime(TOTAL_TIME - game.timeLeft) + " with " + game.totalMisses + " false alarm" + (game.totalMisses === 1 ? "" : "s") + ". Time bonus +" + bonus + ". Final score: " + game.score + ". " + placed,
+    '<button class="action primary replay-btn" onclick="playAgain()">Play again</button><button class="action" onclick="hideBanner()">Review the rooms</button>');
+}
+function timeUp() {
+  game.over = true;
+  clearInterval(timerInterval);
+  var done = ORDER.filter(function(r) { return game.completed[r]; }).length;
+  updateStatus();
+  unlockAll();
+  var placed = submitScore(false);
+  showEndScreen("\u23F0", "Time's up",
+    "You restored " + done + " of 3 rooms. Score: " + game.score + ". " + placed + (settings.allowReveal ? " Use Reveal answers in each room to walk through what was there." : ""),
+    '<button class="action primary replay-btn" onclick="playAgain()">Play again</button><button class="action" onclick="hideBanner()">Review the rooms</button>');
+}
+function showHint() {
+  var r = game.current;
+  if (game.hints[r] <= 0 || game.over || !game.started || game.completed[r]) return;
+  var remaining = ROOMS[r].issues.filter(function(i) { return !game.found[r].has(i.id); });
+  if (!remaining.length) return;
+  game.hints[r]--;
+  game.score = Math.max(0, game.score - 3);
+  var pick = remaining[Math.floor(Math.random() * remaining.length)];
+  var spot = svgHost.querySelector('.hotspot[data-id="' + pick.id + '"][data-kind="issue"]');
+  svgHost.querySelectorAll(".hotspot").forEach(function(sp) { sp.classList.remove("pulse-hint"); });
+  if (spot) {
+    scrollSpotIntoView(spot);
+    spot.classList.add("pulse-hint");
+    setTimeout(function() { spot.classList.remove("pulse-hint"); }, 2500);
+  }
+  updateStatus();
+}
+function revealRoom() {
+  var r = game.current;
+  ROOMS[r].issues.forEach(function(i) { game.found[r].add(i.id); });
+  ROOMS[r].decoys.forEach(function(d) { game.decoys[r].add(d.id); });
+  game.revealed[r] = true;
+  applyMarks();
+  renderFoundGrid();
+  renderDecoyGrid();
+  updateStatus();
+  updateProgress();
+  if (game.started && !game.over && !game.completed[r]) completeRoom(r, true);
+}
+function restartGame() {
+  newGame();
+  renderSteps();
+  renderScene();
+  updateTimerDisplay();
+  showStartBanner();
+}
+
+// ---------- Admin settings + live "playing now" board ----------
+var settings = { allowReveal: true, allowReplay: true };
+var adminPw = "", adminOk = false, adminOpen = false, liveRows = [], liveOk = false, liveDb = null;
+var liveSession = null, liveStatus = "playing", livePushTimer = null, liveLastPush = 0, playedBannerShown = false;
+var PLAYED_KEY = "sustainability-escape-played", SETTINGS_KEY = "sustainability-escape-settings";
+function hasBackend() { return remoteEnabled() || !!liveDb; }
+function newSessionId() {
+  try { if (window.crypto && crypto.randomUUID) return crypto.randomUUID(); } catch (e) {}
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function(ch) {
+    var r = Math.random() * 16 | 0; return (ch === "x" ? r : (r & 3 | 8)).toString(16);
+  });
+}
+function rpc(name, body) {
+  return fetch(SUPABASE_URL.replace(/\/+$/, "") + "/rest/v1/rpc/" + name, { method: "POST", headers: remoteHeaders(), body: JSON.stringify(body || {}) })
+    .then(function(r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.text(); })
+    .then(function(t) { return t ? JSON.parse(t) : null; });
+}
+
+// --- settings ---
+function hasPlayed() { try { return localStorage.getItem(PLAYED_KEY) === "1"; } catch (e) { return false; } }
+function markPlayed() { try { localStorage.setItem(PLAYED_KEY, "1"); } catch (e) {} }
+function applySettings(s) {
+  settings.allowReveal = s.allowReveal !== false;
+  settings.allowReplay = s.allowReplay !== false;
+  document.body.classList.toggle("no-reveal", !settings.allowReveal);
+  document.body.classList.toggle("no-replay", !settings.allowReplay);
+  var tr = document.getElementById("adm-reveal"), tp = document.getElementById("adm-replay");
+  if (tr) tr.checked = settings.allowReveal;
+  if (tp) tp.checked = settings.allowReplay;
+  if (!settings.allowReplay && hasPlayed() && !game.started && !playedBannerShown) {
+    playedBannerShown = true;
+    showBanner("✋", "Thanks for playing", "This game has already been played on this device. Ask the organiser if you'd like another go.", "");
+  } else if (settings.allowReplay && playedBannerShown && !game.started) {
+    playedBannerShown = false;
+    showStartBanner();
+  }
+}
+function fetchSettings() {
+  if (remoteEnabled()) {
+    return fetch(SUPABASE_URL.replace(/\/+$/, "") + "/rest/v1/game_settings?select=allow_reveal,allow_replay&id=eq.1", { headers: remoteHeaders() })
+      .then(function(r) { if (!r.ok) throw new Error(); return r.json(); })
+      .then(function(rows) { if (rows && rows[0]) applySettings({ allowReveal: rows[0].allow_reveal, allowReplay: rows[0].allow_replay }); })
+      .catch(function() {});
+  }
+  if (!liveDb) {
+    try { var v = JSON.parse(localStorage.getItem(SETTINGS_KEY) || "{}"); applySettings(v); } catch (e) {}
+  }
+  return Promise.resolve();
+}
+function saveSettings(next) {
+  var prev = { allowReveal: settings.allowReveal, allowReplay: settings.allowReplay };
+  applySettings(next);
+  var done;
+  if (remoteEnabled()) {
+    done = rpc("admin_set_settings", { p_password: adminPw, p_allow_reveal: next.allowReveal, p_allow_replay: next.allowReplay })
+      .then(function(ok) { if (ok !== true) { adminLogout("Password not accepted — please log in again."); throw new Error("denied"); } });
+  } else if (liveDb) {
+    done = liveDb.collection("config").doc("settings").set({ allowReveal: next.allowReveal, allowReplay: next.allowReplay });
+  } else {
+    try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(next)); } catch (e) {}
+    done = Promise.resolve();
+  }
+  done.then(function() { showToast("Settings saved", "good"); })
+    .catch(function() { applySettings(prev); showToast("Couldn't save settings", "bad"); });
+}
+
+// --- player-side guards ---
+function playAgain() {
+  if (!settings.allowReplay) { showToast("Play again is turned off by the organiser", "bad"); return; }
+  restartGame();
+}
+var _revealRoom = revealRoom;
+revealRoom = function() {
+  if (!settings.allowReveal && !adminOk) { showToast("Reveal answers is turned off by the organiser", "bad"); return; }
+  _revealRoom.apply(this, arguments);
+};
+
+// --- live progress reporting ---
+function livePayload() {
+  return { name: playerName, room: ORDER.indexOf(game.current) + 1, pct: roomPct(game.current),
+    roomsDone: ORDER.filter(function(r) { return game.completed[r]; }).length,
+    score: game.score, timeLeft: game.timeLeft, status: liveStatus };
+}
+function livePush() {
+  if (!liveSession || !playerName) return;
+  liveLastPush = Date.now();
+  var p = livePayload();
+  if (remoteEnabled()) {
+    rpc("live_update", { p_id: liveSession, p_name: p.name, p_room: p.room, p_pct: p.pct, p_rooms_done: p.roomsDone,
+      p_score: p.score, p_time_left: p.timeLeft, p_status: p.status }).then(fetchLive).catch(function() {});
+  } else if (liveDb) {
+    p.updatedAt = Date.now();
+    liveDb.collection("live").doc(liveSession).set(p).catch(function() {});
+  }
+}
+function livePushSoon() {
+  clearTimeout(livePushTimer);
+  livePushTimer = setTimeout(livePush, Math.max(0, 1500 - (Date.now() - liveLastPush)));
+}
+function wrapAfter(name, fn) {
+  var orig = window[name];
+  window[name] = function() { var out = orig.apply(this, arguments); fn.apply(this, arguments); return out; };
+}
+wrapAfter("startGame", function() { if (game.started && !liveSession) { liveSession = newSessionId(); liveStatus = "playing"; livePush(); } });
+wrapAfter("handleClick", livePushSoon);
+wrapAfter("afterChange", livePushSoon);
+wrapAfter("goRoom", livePushSoon);
+wrapAfter("bustRoom", function() { setTimeout(livePush, 1100); });
+wrapAfter("winGame", function() { liveStatus = "escaped"; markPlayed(); livePush(); });
+wrapAfter("timeUp", function() { liveStatus = "timeup"; markPlayed(); livePush(); });
+wrapAfter("restartGame", function() { liveSession = null; liveStatus = "playing"; playedBannerShown = false; });
+setInterval(function() { if (game.started && !game.over && Date.now() - liveLastPush >= 9000) livePush(); }, 3000);
+
+// --- live board ---
+function fetchLive() {
+  if (!remoteEnabled()) return Promise.resolve();
+  return rpc("live_list", {}).then(function(rows) {
+    liveOk = true;
+    var now = Date.now();
+    liveRows = (rows || []).map(function(x) {
+      return { name: String(x.name || "Team").slice(0, 24), room: +x.room || 1, pct: +x.pct || 0, roomsDone: +x.rooms_done || 0,
+        score: +x.score || 0, timeLeft: +x.time_left || 0, status: x.status, seenAt: now - (+x.seconds_ago || 0) * 1000 };
+    });
+    renderLive();
+  }).catch(function() { liveOk = false; renderLive(); });
+}
+function liveVisible() {
+  var now = Date.now();
+  return liveRows.filter(function(r) {
+    var age = (now - r.seenAt) / 1000;
+    return r.status === "playing" ? age <= 90 : age <= 900;
+  }).sort(function(a, b) {
+    var ap = a.status === "playing" ? 1 : 0, bp = b.status === "playing" ? 1 : 0;
+    if (ap !== bp) return bp - ap;
+    if (ap) return (b.roomsDone * 100 + (b.roomsDone === 3 ? 0 : b.pct)) - (a.roomsDone * 100 + (a.roomsDone === 3 ? 0 : a.pct)) || b.score - a.score;
+    return b.score - a.score;
+  });
+}
+function cell(tr, text, cls) {
+  var td = document.createElement("td");
+  if (cls) td.className = cls;
+  if (text instanceof Node) td.appendChild(text); else td.textContent = text;
+  tr.appendChild(td);
+}
+function fillLive(tbody) {
+  var rows = liveVisible(), now = Date.now();
+  tbody.textContent = "";
+  if (!rows.length) {
+    var etr = document.createElement("tr");
+    cell(etr, hasBackend() ? "Nobody is playing right now." : "The live board needs the shared scoreboard to be set up.", "board-empty");
+    etr.firstChild.colSpan = 6;
+    tbody.appendChild(etr);
+    return;
+  }
+  rows.forEach(function(r) {
+    var tr = document.createElement("tr");
+    if (r.name === playerName && liveSession && r.status === liveStatus) tr.className = "board-me";
+    cell(tr, r.name, "board-name");
+    var roomLabel = r.status === "escaped" ? "All 3 restored" : (r.room + ". " + ROOMS[ORDER[r.room - 1] || "office"].label);
+    cell(tr, roomLabel);
+    var bar = document.createElement("div"); bar.className = "live-bar";
+    var fill = document.createElement("span"); fill.style.width = (r.status === "escaped" ? 100 : r.pct) + "%"; bar.appendChild(fill);
+    var lbl = document.createElement("em"); lbl.textContent = (r.status === "escaped" ? 100 : r.pct) + "%"; bar.appendChild(lbl);
+    cell(tr, bar);
+    cell(tr, String(r.score));
+    cell(tr, r.status === "playing" ? fmtTime(Math.max(0, r.timeLeft - Math.floor((now - r.seenAt) / 1000))) : fmtTime(r.timeLeft));
+    var idle = r.status === "playing" && (now - r.seenAt) > 30000;
+    var st = document.createElement("span");
+    st.className = "live-status " + (idle ? "idle" : r.status);
+    st.textContent = idle ? "Idle" : ({ playing: "Playing", escaped: "Escaped ✓", timeup: "Time's up" }[r.status] || "Playing");
+    cell(tr, st);
+    tbody.appendChild(tr);
+  });
+}
+function renderLive() {
+  var wrap = document.getElementById("live-wrap");
+  wrap.style.display = hasBackend() ? "" : "none";
+  var playing = liveVisible().filter(function(r) { return r.status === "playing"; }).length;
+  ["live-count", "adm-live-count"].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.textContent = playing + (playing === 1 ? " team playing" : " teams playing");
+  });
+  fillLive(document.getElementById("live-body"));
+  fillLive(document.getElementById("adm-live-body"));
+}
+
+// --- admin panel ---
+function openAdmin() {
+  adminOpen = true;
+  document.getElementById("admin").hidden = false;
+  var login = document.getElementById("adm-login"), main = document.getElementById("adm-main"), msg = document.getElementById("adm-login-msg");
+  var pwRow = document.getElementById("adm-pw-row");
+  document.getElementById("adm-mode").textContent = remoteEnabled() ? "Settings apply to every player on this site." :
+    (window.claude && window.claude.use ? "Settings apply to everyone playing this page." : "No shared scoreboard is set up, so settings apply to this device only.");
+  if (remoteEnabled()) {
+    if (adminOk) { login.hidden = true; main.hidden = false; }
+    else { login.hidden = false; main.hidden = true; pwRow.hidden = false; msg.textContent = ""; setTimeout(function() { try { document.getElementById("adm-pw").focus(); } catch (e) {} }, 50); }
+  } else if (window.claude && window.claude.use) {
+    login.hidden = false; main.hidden = true; pwRow.hidden = true; msg.textContent = "Checking access…";
+    window.claude.use("user").then(function(u) { return u ? u.isOwner() : false; }).then(function(o) {
+      if (o) { adminOk = true; login.hidden = true; main.hidden = false; }
+      else msg.textContent = "Only the owner of this page can use the admin panel.";
+    }).catch(function() { msg.textContent = "Couldn't check access."; });
+  } else {
+    adminOk = true; login.hidden = true; main.hidden = false;
+  }
+  applySettings(settings);
+  renderLive();
+}
+function closeAdmin() {
+  adminOpen = false;
+  document.getElementById("admin").hidden = true;
+}
+function adminLogin() {
+  var pw = document.getElementById("adm-pw").value, msg = document.getElementById("adm-login-msg");
+  if (!pw) { msg.textContent = "Enter the admin password."; return; }
+  msg.textContent = "Checking…";
+  rpc("admin_check", { p_password: pw }).then(function(ok) {
+    if (ok === true) {
+      adminPw = pw; adminOk = true;
+      try { sessionStorage.setItem("sustainability-escape-admin", pw); } catch (e) {}
+      openAdmin();
+    } else msg.textContent = "Wrong password.";
+  }).catch(function() { msg.textContent = "Couldn't reach the database — check the setup."; });
+}
+function adminLogout(reason) {
+  adminPw = ""; adminOk = false;
+  try { sessionStorage.removeItem("sustainability-escape-admin"); } catch (e) {}
+  if (reason) showToast(reason, "bad");
+  if (adminOpen) openAdmin();
+}
+function adminToggle() {
+  saveSettings({ allowReveal: document.getElementById("adm-reveal").checked, allowReplay: document.getElementById("adm-replay").checked });
+}
+var admClearArmed = false;
+function adminClearBoard() {
+  var btn = document.getElementById("adm-clear");
+  if (!admClearArmed) {
+    admClearArmed = true; btn.textContent = "Click again to confirm";
+    setTimeout(function() { admClearArmed = false; btn.textContent = "Clear scoreboard"; }, 4000);
+    return;
+  }
+  admClearArmed = false; btn.textContent = "Clear scoreboard";
+  if (remoteEnabled()) {
+    rpc("admin_clear_scores", { p_password: adminPw }).then(function(ok) {
+      if (ok !== true) { adminLogout("Password not accepted — please log in again."); return; }
+      sharedRows = []; lastEntryId = null; renderScoreboard(); fetchRemote(); fetchLive();
+      showToast("Scoreboard cleared", "good");
+    }).catch(function() { showToast("Couldn't clear the scoreboard", "bad"); });
+  } else {
+    clearArmed = true; clearScoreboard();
+  }
+}
+function initAdmin() {
+  try { var saved = sessionStorage.getItem("sustainability-escape-admin"); if (saved && remoteEnabled()) { adminPw = saved; adminOk = true; } } catch (e) {}
+  if (remoteEnabled()) {
+    fetchSettings(); fetchLive();
+    setInterval(function() { if (!document.hidden) fetchSettings(); }, 10000);
+    setInterval(function() { if (!document.hidden) fetchLive(); }, 5000);
+  } else if (window.claude && window.claude.use) {
+    window.claude.use("db").then(function(db) {
+      if (!db) return;
+      liveDb = db;
+      db.collection("config").onSnapshot(function(snap) {
+        snap.docs.forEach(function(d) { if (d.id === "settings") applySettings(d.data() || {}); });
+      }, function() {});
+      db.collection("live").limit(300).onSnapshot(function(snap) {
+        liveOk = true;
+        liveRows = snap.docs.map(function(d) {
+          var x = d.data() || {};
+          return { name: String(x.name || "Team").slice(0, 24), room: +x.room || 1, pct: +x.pct || 0, roomsDone: +x.roomsDone || 0,
+            score: +x.score || 0, timeLeft: +x.timeLeft || 0, status: x.status, seenAt: Math.min(Date.now(), +x.updatedAt || 0) };
+        });
+        renderLive();
+      }, function() { liveDb = null; renderLive(); });
+      renderLive();
+    }).catch(function() {});
+    fetchSettings();
+  } else {
+    fetchSettings();
+  }
+  setInterval(renderLive, 5000);
+  renderLive();
+  if (/(^|[?&#])admin\b/.test(location.search + location.hash)) openAdmin();
+}
+
+// ---------- Init ----------
+restartGame();
+requestAnimationFrame(function() { resetView(); });
+initScoreboard();
+initAdmin();
+</script>
+</body>
+</html>
