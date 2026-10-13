@@ -435,7 +435,7 @@
     </div>
     <div class="board-scroll">
       <table class="board">
-        <thead><tr><th>#</th><th>Team</th><th>Score</th><th>Rooms</th><th>Time</th><th>False alarms</th></tr></thead>
+        <thead><tr><th>#</th><th>Team</th><th>Score</th><th>Rooms</th><th>Time taken</th><th>False alarms</th></tr></thead>
         <tbody id="board-body"></tbody>
       </table>
     </div>
@@ -503,7 +503,7 @@
 //  The publishable key is designed to be public; the database rules
 //  (see README) only allow reading scores and adding new ones.
 // =====================================================================
-var SUPABASE_URL = "https://lkzqgwhmnpjyxohzmyac.supabase.co";   // e.g. "https://abcdefghijkl.supabase.co"
+var SUPABASE_URL = "https://lkzqgwhmnpjyxohzmyac.supabase.co/rest/v1/";   // e.g. "https://abcdefghijkl.supabase.co"
 var SUPABASE_KEY = "sb_publishable_7CaIYbJhhjVfDbtxIotURg_CgIhomm6";   // e.g. "sb_publishable_..." (or the legacy anon key)
 
 
@@ -1629,7 +1629,7 @@ function showBanner(icon, title, body, buttons) {
 function hideBanner() {
   banner.classList.remove("show", "end-screen");
 }
-var BOARD_HEAD = '<thead><tr><th>#</th><th>Team</th><th>Score</th><th>Rooms</th><th>Time</th><th>False alarms</th></tr></thead>';
+var BOARD_HEAD = '<thead><tr><th>#</th><th>Team</th><th>Score</th><th>Rooms</th><th>Time taken</th><th>False alarms</th></tr></thead>';
 function showEndScreen(icon, title, body, buttons) {
   banner.innerHTML = '<div class="banner-card banner-wide"><div class="banner-icon">' + icon + "</div><h2>" + title + "</h2><p>" + body + "</p>" +
     '<div class="end-board"><div class="end-board-head">Scoreboard</div><div class="end-board-scroll" id="end-board-scroll"><table class="board">' + BOARD_HEAD +
@@ -1806,7 +1806,7 @@ function initScoreboard() {
 }
 function submitScore(escaped) {
   var entry = {
-    name: playerName, score: game.score,
+    name: playerName, score: Math.max(0, game.score),
     rooms: ORDER.filter(function(r) { return game.completed[r] && !game.revealed[r]; }).length,
     escaped: escaped, timeUsed: TOTAL_TIME - game.timeLeft, falseAlarms: game.totalMisses, at: Date.now()
   };
@@ -2043,7 +2043,7 @@ function thermoEnter() {
     showToast("Fixed \u2014 thermostat set to " + val + "\u00B0C (+10%)", "good");
     afterChange(r);
   } else {
-    game.score = Math.max(0, game.score - 5);
+    game.score = game.score - 5;
     game.misses[r]++;
     game.totalMisses++;
     showToast(val < t.correct ? "False alarm \u2014 " + val + "\u00B0C still overcools the room" : "False alarm \u2014 " + val + "\u00B0C is above the " + t.correct + "\u00B0C target for this room", "bad");
@@ -2071,7 +2071,7 @@ function handleClick(id, kind) {
   } else {
     if (game.decoys[r].has(id)) return;
     game.decoys[r].add(id);
-    game.score = Math.max(0, game.score - 5);
+    game.score = game.score - 5;
     game.misses[r]++;
     game.totalMisses++;
     var decoy = ROOMS[r].decoys.find(function(d) { return d.id === id; });
@@ -2087,12 +2087,15 @@ function handleClick(id, kind) {
 function bustRoom(r) {
   game.busy = true;
   setTimeout(function() {
+    var lost = game.found[r].size * 10;
+    game.score = game.score - lost;
     game.found[r] = new Set();
     game.decoys[r] = new Set();
     game.misses[r] = 0;
     game.busy = false;
     renderScene();
-    showToast("Five false alarms \u2014 the room resets to 0%", "bad");
+    updateStatus();
+    showToast("Five false alarms \u2014 the room resets to 0%" + (lost ? " and you lose its " + lost + " points" : ""), "bad");
   }, 900);
 }
 function completeRoom(r, viaReveal) {
@@ -2141,7 +2144,7 @@ function showHint() {
   var remaining = ROOMS[r].issues.filter(function(i) { return !game.found[r].has(i.id); });
   if (!remaining.length) return;
   game.hints[r]--;
-  game.score = Math.max(0, game.score - 3);
+  game.score = game.score - 3;
   var pick = remaining[Math.floor(Math.random() * remaining.length)];
   var spot = svgHost.querySelector('.hotspot[data-id="' + pick.id + '"][data-kind="issue"]');
   svgHost.querySelectorAll(".hotspot").forEach(function(sp) { sp.classList.remove("pulse-hint"); });
